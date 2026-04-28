@@ -1,9 +1,5 @@
 set shell := [ "nu", "--commands" ]
 
-TARGET := "./target"
-NAME := "fasmfetch"
-OUT := "{{TARGET}}/{{NAME}}"
-
 alias b := build
 alias c := clean
 alias d := disasm
@@ -16,21 +12,21 @@ alias w := watch
     just --list
 
 @build:
-    mkdir ./{{TARGET}}
-    fasm main.asm {{OUT}}
+    mkdir target
+    fasm main.S target/fasmfetch
 
 @run: build
-    {{OUT}}
+    target/fasmfetch
 
 @clean:
-    rm --force *.bin *.o {{TARGET}}/*;
+    rm --force *.bin *.o target/*;
 
 @disasm: build
-    objdump --disassemble-all --source {{OUT}}
+    objdump --disassemble-all --source target/fasmfetch
 
 @info: build
-    file {{OUT}}
-    readelf --file-header {{OUT}}
+    file target/fasmfetch
+    readelf --file-header target/fasmfetch
 
 @watch:
-    %watch main.s { just run }
+    watch main.S { just run }

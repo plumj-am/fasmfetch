@@ -34,7 +34,7 @@
             nativeBuildInputs = [ pkgs.fasm ];
 
             buildPhase = ''
-              fasm main.s fasmfetch
+              fasm main.S fasmfetch
             '';
 
             installPhase = ''
