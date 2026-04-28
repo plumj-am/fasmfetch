@@ -20,7 +20,7 @@ SYS_UNAME = 63
 SYS_EXIT  = 60
 
 macro print str, len {
-        mov rax, 1
+        mov rax, SYS_WRITE
         mov rdi, 1
         mov rsi, str
         mov rdx, len
