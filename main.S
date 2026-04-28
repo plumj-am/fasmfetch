@@ -73,6 +73,18 @@ _start:
         xor rdi, rdi                   ; exit code 0 (xor smaller than `mov rdi, 0`)
         syscall
 
+; print null-terminated string
+;   in:       rdi = pointer to string
+;   clobbers: rax, rsi, rdx
+print_str:
+        call strlen                    ; rax = len, rdi intact
+        mov rsi, rdi                   ; pointer to rsi for write
+        mov rdx, rax
+        mov rax, SYS_WRITE
+        mov rdi, 1
+        syscall
+        ret
+
 ; prints ( [color]str[reset] )
 ;   in:       rdi = pointer to null-terminated string
 ;   clobbers: rax, rdi, rsi, rdx
@@ -84,14 +96,7 @@ print_parens:
         print ansi_yel, ansi_yel_len
 
         pop rdi                        ; restore string pointer
-        push rdi                       ; save again for the write call
-        call strlen
-
-        pop rsi                        ; string pointer -> rsi for write
-        mov rdx, rax                   ; length now in rax
-        mov rax, 1
-        mov rdi, 1
-        syscall
+        call print_str
 
         print ansi_rst, ansi_rst_len
         print paren_close, 1
@@ -117,16 +122,9 @@ print_hostname:
         print hostname_label, hostname_label_len
 
         mov rdi, utsname_buf + UTSNAME_NODENAME
-        call strlen
-
-        mov rdx, rax                   ; length now in rax
-        mov rax, 1
-        mov rdi, 1
-        mov rsi, utsname_buf + UTSNAME_NODENAME
-        syscall
+        call print_str
 
         print newline, 1
-
         ret
 
 ; out: `system:      Linux 6.19.12-zen1 (x86_64)`
@@ -134,31 +132,17 @@ print_kernel:
         print system_label, system_label_len
 
         mov rdi, utsname_buf           ; sysname offset 0 in struct
-        call strlen
-
-        mov rdx, rax                   ; length now in rax
-        mov rax, 1
-        mov rdi, 1
-        mov rsi, utsname_buf
-        syscall
+        call print_str
 
         print space, 1
 
         mov rdi, utsname_buf + UTSNAME_RELEASE
-        call strlen
-
-        mov rdx, rax                   ; length now in rax
-        mov rax, 1
-        mov rdi, 1
-        mov rsi, utsname_buf + UTSNAME_RELEASE
-        syscall
+        call print_str
 
         print space, 1
 
         mov rdi, utsname_buf + UTSNAME_MACHINE
-
         call print_parens
 
         print newline, 1
-
         ret
