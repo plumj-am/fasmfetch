@@ -38,7 +38,7 @@ fasmfetch will not be configurable, apart from maybe a couple of flags.
 ## Usage
 
 > [!WARNING]
-> Currently only x86_64-linux is supported.
+> Only x86_64-linux is supported.
 
 ### Nix
 

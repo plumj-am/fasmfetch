@@ -12,19 +12,11 @@
   outputs =
     { nixpkgs, asm-lsp, ... }:
     let
-      inherit (nixpkgs.lib.attrsets) genAttrs;
-
-      systems = [
-        "x86_64-linux"
-        "aarch64-linux"
-        "x86_64-darwin"
-        "aarch64-darwin"
-      ];
-      forEachSystem = f: genAttrs systems (system: f nixpkgs.legacyPackages.${system});
+      system = "x86_64-linux";
+      pkgs = nixpkgs.legacyPackages.${system};
     in
     {
-      packages = forEachSystem (
-        pkgs:
+      packages.${system} =
         let
           fasmfetch = pkgs.stdenv.mkDerivation {
             pname = "fasmfetch";
@@ -46,14 +38,10 @@
         {
           inherit fasmfetch;
           default = fasmfetch;
-        }
-      );
+        };
 
-      devShells = forEachSystem (
-        pkgs:
+      devShells.${system} =
         let
-          inherit asm-lsp;
-
           asm-lsp-master = pkgs.rustPlatform.buildRustPackage {
             pname = "asm-lsp";
             version = "master";
@@ -75,7 +63,6 @@
               pkgs.nushell
             ];
           };
-        }
-      );
+        };
     };
 }
