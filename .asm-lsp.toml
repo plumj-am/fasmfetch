@@ -1,0 +1,11 @@
+[[project]]
+assembler       = "fasm"
+instruction_set = "x86-64"
+path            = "."
+version         = "0.10.1"
+
+[project.opts]
+compile_flags_txt   = [  ]
+compiler            = "fasm"
+default_diagnostics = true
+diagnostics         = true

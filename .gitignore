@@ -3,6 +3,7 @@
 
 !flake.*
 !.justfile
+!.asm-lsp.toml
 
 !main.s
 
