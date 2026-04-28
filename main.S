@@ -5,10 +5,18 @@ entry _start
 ; "[0m"  - reset
 ; "[35m" - magenta
 ; "[34m" - blue
+; "[33m" - yellow
 
 segment readable
-        space   db " "
-        newline db 10
+        space       db " "
+        newline     db 10
+        paren_open  db "("
+        paren_close db ")"
+
+        ansi_rst     db 0x1B, "[0m"
+        ansi_rst_len = $ - ansi_rst
+        ansi_yel     db 0x1B, "[33m"
+        ansi_yel_len = $ - ansi_yel
 
         welcome_msg:
                 db "Welcome to "
@@ -21,10 +29,10 @@ segment readable
                 db 0x1B, "[0m", ": "
         hostname_label_len = $ - hostname_label
 
-        kernel_label:
-                db 0x1B, "[34mkernel"
+        system_label:
+                db 0x1B, "[34msystem"
                 db 0x1B, "[0m", ":   "
-        kernel_label_len = $ - kernel_label
+        system_label_len = $ - system_label
 
 segment readable writable
         ; 6*65 bytes for full utsname struct
@@ -65,6 +73,47 @@ print_space:
         syscall
         ret
 
+; prints ( [color]str[reset] )
+;   in:       rdi = pointer to null-terminated string
+;   clobbers: rax, rdx, rsi
+print_parens:
+        push rdi                       ; save string pointer across calls
+
+        mov rax, 1
+        mov rdi, 1
+        mov rsi, paren_open
+        mov rdx, 1
+        syscall
+
+        mov rax, 1
+        mov rdi, 1
+        mov rsi, ansi_yel
+        mov rdx, ansi_yel_len
+        syscall
+
+        pop rdi                        ; restore string pointer
+        push rdi                       ; save again for the write call
+        call strlen
+
+        pop rsi                        ; string pointer -> rsi for write
+        mov rdx, rax                   ; length now in rax
+        mov rax, 1
+        mov rdi, 1
+        syscall
+
+        mov rax, 1
+        mov rdi, 1
+        mov rsi, ansi_rst
+        mov rdx, ansi_rst_len
+        syscall
+
+        mov rax, 1
+        mov rdi, 1
+        mov rsi, paren_close
+        mov rdx, 1
+        syscall
+
+        ret
 
 ; scan for null terminator
 ;   in:  rdi = pointer to string
@@ -80,6 +129,7 @@ strlen:
 .done:
         ret
 
+; out: `hostname: yuzu`
 print_hostname:
         mov rax, 1
         mov rdi, 1
@@ -105,11 +155,12 @@ print_hostname:
 
         ret
 
+; out: `system:      Linux 6.19.12-zen1 (x86_64)`
 print_kernel:
         mov rax, 1
         mov rdi, 1
-        mov rsi, kernel_label
-        mov rdx, kernel_label_len
+        mov rsi, system_label
+        mov rdx, system_label_len
         syscall
 
         mov rdi, utsname_buf           ; sysname offset 0 in struct
@@ -132,6 +183,12 @@ print_kernel:
         mov rsi, utsname_buf + 130
         syscall
 
+        call print_space
+
+        mov rdi, utsname_buf + 260     ; arch offset 260 in struct
+
+        call print_parens
+
         mov rax, 1
         mov rdi, 1
         mov rsi, newline
@@ -139,5 +196,3 @@ print_kernel:
         syscall
 
         ret
-
-
