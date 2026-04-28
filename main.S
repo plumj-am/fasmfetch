@@ -1,12 +1,6 @@
 format ELF64 executable 3
 entry _start
 
-; palette:
-; "[0m"  - reset
-; "[35m" - magenta
-; "[34m" - blue
-; "[33m" - yellow
-
 UTSNAME_SYSNAME    = 0   ; OS
 UTSNAME_NODENAME   = 65  ; hostname
 UTSNAME_RELEASE    = 130 ; kernel
@@ -55,10 +49,25 @@ segment readable
         system_label_len = $ - system_label
 
 segment readable writable
+        init_rsp dq 0
+
         utsname_buf rb UTSNAME_SIZE
 
 segment readable executable
+; stack at entry
+;    [rsp]              - argc (program args count)
+;    [rsp + 8]          - argv[0] (program name)
+;    ...                - argv[1..argc-1] (program args)
+;    [rsp + (argc+1)*8] - null
+;    [rsp + (argc+2)*8] - env strings start
+;    ...
+;    null               - envp end
+; where
+;    rsp  = register stack pointer
+;    envp = environment pointer
 _start:
+        mov [init_rsp], rsp
+
         ; call uname once so everything can shared same buffer
         mov rax, SYS_UNAME
         mov rdi, utsname_buf
