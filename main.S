@@ -7,6 +7,14 @@ entry _start
 ; "[34m" - blue
 ; "[33m" - yellow
 
+macro print str, len {
+        mov rax, 1
+        mov rdi, 1
+        mov rsi, str
+        mov rdx, len
+        syscall
+}
+
 segment readable
         space       db " "
         newline     db 10
@@ -52,11 +60,7 @@ _start:
         mov rdi, utsname_buf
         syscall
 
-        mov rax, 1
-        mov rdi, 1
-        mov rsi, welcome_msg
-        mov rdx, welcome_msg_len
-        syscall
+        print welcome_msg, welcome_msg_len
 
         call print_hostname
         call print_kernel
@@ -65,31 +69,15 @@ _start:
         xor rdi, rdi                   ; exit code 0 (xor smaller than `mov rdi, 0`)
         syscall
 
-print_space:
-        mov rax, 1
-        mov rdi, 1
-        mov rsi, space
-        mov rdx, 1
-        syscall
-        ret
-
 ; prints ( [color]str[reset] )
 ;   in:       rdi = pointer to null-terminated string
 ;   clobbers: rax, rdx, rsi
 print_parens:
         push rdi                       ; save string pointer across calls
 
-        mov rax, 1
-        mov rdi, 1
-        mov rsi, paren_open
-        mov rdx, 1
-        syscall
+        print paren_open, 1
 
-        mov rax, 1
-        mov rdi, 1
-        mov rsi, ansi_yel
-        mov rdx, ansi_yel_len
-        syscall
+        print ansi_yel, ansi_yel_len
 
         pop rdi                        ; restore string pointer
         push rdi                       ; save again for the write call
@@ -101,17 +89,8 @@ print_parens:
         mov rdi, 1
         syscall
 
-        mov rax, 1
-        mov rdi, 1
-        mov rsi, ansi_rst
-        mov rdx, ansi_rst_len
-        syscall
-
-        mov rax, 1
-        mov rdi, 1
-        mov rsi, paren_close
-        mov rdx, 1
-        syscall
+        print ansi_rst, ansi_rst_len
+        print paren_close, 1
 
         ret
 
@@ -131,13 +110,8 @@ strlen:
 
 ; out: `hostname: yuzu`
 print_hostname:
-        mov rax, 1
-        mov rdi, 1
-        mov rsi, hostname_label
-        mov rdx, hostname_label_len
-        syscall
+        print hostname_label, hostname_label_len
 
-        ; measure hostname length
         mov rdi, utsname_buf + 65      ; nodename offset 65 in struct
         call strlen
 
@@ -147,21 +121,13 @@ print_hostname:
         mov rsi, utsname_buf + 65
         syscall
 
-        mov rax, 1
-        mov rdi, 1
-        mov rsi, newline
-        mov rdx, 1
-        syscall
+        print newline, 1
 
         ret
 
 ; out: `system:      Linux 6.19.12-zen1 (x86_64)`
 print_kernel:
-        mov rax, 1
-        mov rdi, 1
-        mov rsi, system_label
-        mov rdx, system_label_len
-        syscall
+        print system_label, system_label_len
 
         mov rdi, utsname_buf           ; sysname offset 0 in struct
         call strlen
@@ -172,7 +138,7 @@ print_kernel:
         mov rsi, utsname_buf
         syscall
 
-        call print_space
+        print space, 1
 
         mov rdi, utsname_buf + 130     ; release offset 130 in struct
         call strlen
@@ -183,16 +149,12 @@ print_kernel:
         mov rsi, utsname_buf + 130
         syscall
 
-        call print_space
+        print space, 1
 
         mov rdi, utsname_buf + 260     ; arch offset 260 in struct
 
         call print_parens
 
-        mov rax, 1
-        mov rdi, 1
-        mov rsi, newline
-        mov rdx, 1
-        syscall
+        print newline, 1
 
         ret
