@@ -2,15 +2,23 @@ format ELF64 executable 3
 entry _start
 
 segment readable
-        msg db "Welcome to fasmfetch!", 10
-        msg_len = $ - msg
+        ; palette:
+        ; "[0m"  - reset
+        ; "[35m" - magenta
+        ; "[34m" - blue
+        welcome_msg:
+                db "Welcome to "
+                db 0x1B, "[35mfasmfetch"
+                db 0x1B, "[0m!"
+                db 10
+        welcome_msg_len = $ - welcome_msg
 
 segment readable executable
 _start:
         mov rax, 1
         mov rdi, 1
-        mov rsi, msg
-        mov rdx, msg_len
+        mov rsi, welcome_msg
+        mov rdx, welcome_msg_len
         syscall
 
         mov rax, 60
