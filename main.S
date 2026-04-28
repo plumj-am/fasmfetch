@@ -12,8 +12,7 @@ segment readable
         welcome_msg:
                 db "Welcome to "
                 db 0x1B, "[35mfasmfetch"
-                db 0x1B, "[0m!"
-                db 10
+                db 0x1B, "[0m!", 10, 10
         welcome_msg_len = $ - welcome_msg
 
         hostname_label:
@@ -22,7 +21,10 @@ segment readable
         hostname_label_len = $ - hostname_label
 
 segment readable writable
-        hostname_buf rb 64             ; reserve 64 bytes for hostname string
+        ; 6*65 bytes for full utsname struct - only interested in nodename for
+        ; now but also has: sysname, release, machine, etc. so will be useful
+        ; later
+        utsname_buf rb 390
 
 segment readable executable
 _start:
@@ -31,6 +33,8 @@ _start:
         mov rsi, welcome_msg
         mov rdx, welcome_msg_len
         syscall
+
+        call print_hostname
 
         mov rax, 60
         xor rdi, rdi                   ; exit code 0 (xor smaller than `mov rdi, 0`)
@@ -49,3 +53,34 @@ strlen:
         jmp .loop
 .done:
         ret
+
+print_hostname:
+        mov rax, 63                    ; syscall 63 = uname
+        mov rdi, utsname_buf
+        syscall
+
+        mov rax, 1
+        mov rdi, 1
+        mov rsi, hostname_label
+        mov rdx, hostname_label_len
+        syscall
+
+        ; measure hostname length
+        mov rdi, utsname_buf + 65      ; nodename offset 65 in struct
+        call strlen
+
+        mov rdx, rax                   ; length now in rax
+        mov rax, 1
+        mov rdi, 1
+        mov rsi, utsname_buf + 65
+        syscall
+
+        mov rax, 1
+        mov rdi, 1
+        mov rsi, newline
+        mov rdx, 1
+        syscall
+
+        ret
+
+
