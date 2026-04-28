@@ -22,5 +22,5 @@ _start:
         syscall
 
         mov rax, 60
-        mov rdi, 0
+        xor rdi, rdi                   ; exit code 0 (xor smaller than `mov rdi, 0`)
         syscall
