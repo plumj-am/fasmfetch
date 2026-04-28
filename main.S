@@ -75,7 +75,7 @@ _start:
 
 ; prints ( [color]str[reset] )
 ;   in:       rdi = pointer to null-terminated string
-;   clobbers: rax, rdx, rsi
+;   clobbers: rax, rdi, rsi, rdx
 print_parens:
         push rdi                       ; save string pointer across calls
 
