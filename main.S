@@ -35,3 +35,17 @@ _start:
         mov rax, 60
         xor rdi, rdi                   ; exit code 0 (xor smaller than `mov rdi, 0`)
         syscall
+
+; scan for null terminator
+;   in:  rdi = pointer to string
+;   out: rax = length (excluding null)
+strlen:
+        xor rax, rax
+.loop:
+        ; scan forward from base pointer by inc rax avoids need for 2 registers
+        cmp byte [rdi + rax], 0
+        je .done
+        inc rax
+        jmp .loop
+.done:
+        ret
