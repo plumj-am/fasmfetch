@@ -7,6 +7,18 @@ entry _start
 ; "[34m" - blue
 ; "[33m" - yellow
 
+UTSNAME_SYSNAME    = 0   ; OS
+UTSNAME_NODENAME   = 65  ; hostname
+UTSNAME_RELEASE    = 130 ; kernel
+UTSNAME_VERSION    = 195
+UTSNAME_MACHINE    = 260 ; arch
+UTSNAME_DOMAINNAME = 325
+UTSNAME_SIZE       = 390
+
+SYS_WRITE = 1
+SYS_UNAME = 63
+SYS_EXIT  = 60
+
 macro print str, len {
         mov rax, 1
         mov rdi, 1
@@ -43,20 +55,12 @@ segment readable
         system_label_len = $ - system_label
 
 segment readable writable
-        ; 6*65 bytes for full utsname struct
-        ; offsets:
-        ;   0 = sysname (OS name)
-        ;  65 = nodename (hostname)
-        ; 130 = release (kernel)
-        ; 195 = version (exact)
-        ; 260 = machine (architecture)
-        ; 325 = domainname
-        utsname_buf rb 390
+        utsname_buf rb UTSNAME_SIZE
 
 segment readable executable
 _start:
         ; call uname once so everything can shared same buffer
-        mov rax, 63
+        mov rax, SYS_UNAME
         mov rdi, utsname_buf
         syscall
 
@@ -65,7 +69,7 @@ _start:
         call print_hostname
         call print_kernel
 
-        mov rax, 60
+        mov rax, SYS_EXIT
         xor rdi, rdi                   ; exit code 0 (xor smaller than `mov rdi, 0`)
         syscall
 
@@ -112,13 +116,13 @@ strlen:
 print_hostname:
         print hostname_label, hostname_label_len
 
-        mov rdi, utsname_buf + 65      ; nodename offset 65 in struct
+        mov rdi, utsname_buf + UTSNAME_NODENAME
         call strlen
 
         mov rdx, rax                   ; length now in rax
         mov rax, 1
         mov rdi, 1
-        mov rsi, utsname_buf + 65
+        mov rsi, utsname_buf + UTSNAME_NODENAME
         syscall
 
         print newline, 1
@@ -140,18 +144,18 @@ print_kernel:
 
         print space, 1
 
-        mov rdi, utsname_buf + 130     ; release offset 130 in struct
+        mov rdi, utsname_buf + UTSNAME_RELEASE
         call strlen
 
         mov rdx, rax                   ; length now in rax
         mov rax, 1
         mov rdi, 1
-        mov rsi, utsname_buf + 130
+        mov rsi, utsname_buf + UTSNAME_RELEASE
         syscall
 
         print space, 1
 
-        mov rdi, utsname_buf + 260     ; arch offset 260 in struct
+        mov rdi, utsname_buf + UTSNAME_MACHINE
 
         call print_parens
 
