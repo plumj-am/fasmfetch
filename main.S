@@ -21,7 +21,7 @@ segment readable
                 db 0x1B, "[0m", ": "
         hostname_label_len = $ - hostname_label
 
-segment readable writeable
+segment readable writable
         hostname_buf rb 64             ; reserve 64 bytes for hostname string
 
 segment readable executable
