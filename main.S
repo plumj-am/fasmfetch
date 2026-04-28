@@ -21,9 +21,14 @@ segment readable
         hostname_label_len = $ - hostname_label
 
 segment readable writable
-        ; 6*65 bytes for full utsname struct - only interested in nodename for
-        ; now but also has: sysname, release, machine, etc. so will be useful
-        ; later
+        ; 6*65 bytes for full utsname struct
+        ; offsets:
+        ;   0 = sysname (OS name)
+        ;  65 = nodename (hostname)
+        ; 130 = release (kernel)
+        ; 195 = version (exact)
+        ; 260 = machine (architecture)
+        ; 325 = domainname
         utsname_buf rb 390
 
 segment readable executable
