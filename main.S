@@ -7,6 +7,7 @@ entry _start
 ; "[34m" - blue
 
 segment readable
+        space   db " "
         newline db 10
 
         welcome_msg:
@@ -19,6 +20,11 @@ segment readable
                 db 0x1B, "[34mhostname"
                 db 0x1B, "[0m", ": "
         hostname_label_len = $ - hostname_label
+
+        kernel_label:
+                db 0x1B, "[34mkernel"
+                db 0x1B, "[0m", ":   "
+        kernel_label_len = $ - kernel_label
 
 segment readable writable
         ; 6*65 bytes for full utsname struct
@@ -33,6 +39,11 @@ segment readable writable
 
 segment readable executable
 _start:
+        ; call uname once so everything can shared same buffer
+        mov rax, 63
+        mov rdi, utsname_buf
+        syscall
+
         mov rax, 1
         mov rdi, 1
         mov rsi, welcome_msg
@@ -40,10 +51,20 @@ _start:
         syscall
 
         call print_hostname
+        call print_kernel
 
         mov rax, 60
         xor rdi, rdi                   ; exit code 0 (xor smaller than `mov rdi, 0`)
         syscall
+
+print_space:
+        mov rax, 1
+        mov rdi, 1
+        mov rsi, space
+        mov rdx, 1
+        syscall
+        ret
+
 
 ; scan for null terminator
 ;   in:  rdi = pointer to string
@@ -60,10 +81,6 @@ strlen:
         ret
 
 print_hostname:
-        mov rax, 63                    ; syscall 63 = uname
-        mov rdi, utsname_buf
-        syscall
-
         mov rax, 1
         mov rdi, 1
         mov rsi, hostname_label
@@ -78,6 +95,41 @@ print_hostname:
         mov rax, 1
         mov rdi, 1
         mov rsi, utsname_buf + 65
+        syscall
+
+        mov rax, 1
+        mov rdi, 1
+        mov rsi, newline
+        mov rdx, 1
+        syscall
+
+        ret
+
+print_kernel:
+        mov rax, 1
+        mov rdi, 1
+        mov rsi, kernel_label
+        mov rdx, kernel_label_len
+        syscall
+
+        mov rdi, utsname_buf           ; sysname offset 0 in struct
+        call strlen
+
+        mov rdx, rax                   ; length now in rax
+        mov rax, 1
+        mov rdi, 1
+        mov rsi, utsname_buf
+        syscall
+
+        call print_space
+
+        mov rdi, utsname_buf + 130     ; release offset 130 in struct
+        call strlen
+
+        mov rdx, rax                   ; length now in rax
+        mov rax, 1
+        mov rdi, 1
+        mov rsi, utsname_buf + 130
         syscall
 
         mov rax, 1
