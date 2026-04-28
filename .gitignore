@@ -1,0 +1,10 @@
+*
+!.gitignore
+
+!flake.*
+!.justfile
+
+!main.s
+
+!LICENSE
+!README.md
