@@ -5,7 +5,7 @@
 !.justfile
 !.asm-lsp.toml
 
-!main.s
+!main.S
 
 !LICENSE
 !README.md
