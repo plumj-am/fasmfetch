@@ -102,13 +102,14 @@ segment readable
                 db "  -h  --help       Show this help screen", NL
         help_msg_len = $ - help_msg
 
-        user_key      db "USER", 0
-        term_key      db "TERM", 0
-        term_prog_key db "TERM_PROGRAM", 0
-        shell_key     db "SHELL", 0
-        editor_key    db "EDITOR", 0
-        visual_key    db "VISUAL", 0
-        wm_key        db "XDG_CURRENT_DESKTOP", 0
+        user_key         db "USER", 0
+        term_key         db "TERM", 0
+        term_prog_key    db "TERM_PROGRAM", 0
+        shell_key        db "SHELL", 0
+        editor_key       db "EDITOR", 0
+        visual_key       db "VISUAL", 0
+        wm_key           db "XDG_CURRENT_DESKTOP", 0
+        session_type_key db "XDG_SESSION_TYPE", 0
 
         flag_h    db "-h", NUL
         flag_help db "--help", NUL
@@ -355,6 +356,7 @@ print_kernel:
         print newline, 1
         ret
 
+; out: `shell: <path>`
 print_shell:
         print shell_label, shell_label_len
 
@@ -368,6 +370,7 @@ print_shell:
         print newline, 1
         ret
 
+; out: `terminal: xterm-kitty (zellij)`
 print_term:
         print term_label, term_label_len
 .program:
@@ -389,6 +392,7 @@ print_term:
         print newline, 1
         ret
 
+; out: `editor: hx`
 print_editor:
         print editor_label, editor_label_len
 
@@ -408,15 +412,25 @@ print_editor:
         print newline, 1
         ret
 
+; out: `wm: niri (wayland)`
 print_wm:
         print wm_label, wm_label_len
-
+.wm:
         mov rdi, wm_key
         call getenv
         test rax, rax
         jz .done
         mov rdi, rax
         call print_str
+.type:
+        print space, 1
+        mov rdi, session_type_key
+        call getenv
+        test rax, rax
+        jz .done
+        mov rdi, rax
+        call print_parens
+
 .done:
         print newline, 1
         ret
