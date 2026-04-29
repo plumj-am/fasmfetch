@@ -41,6 +41,27 @@ macro check_flag pos, short, long, jump {
         jnz jump
 }
 
+macro from_env_bracket_pair key1, key2 {
+.first:
+        mov rdi, key2
+        call getenv
+        test rax, rax
+        jz .done
+        mov rdi, rax
+        call print_str
+.second:
+        print space, 1
+        mov rdi, key2
+        call getenv
+        test rax, rax
+        jz .done
+        mov rdi, rax
+        call print_parens
+.done:
+        print newline, 1
+        ret
+}
+
 segment readable
         space       db " "
         newline     db NL
@@ -373,24 +394,7 @@ print_shell:
 ; out: `terminal: xterm-kitty (zellij)`
 print_term:
         print term_label, term_label_len
-.program:
-        mov rdi, term_key
-        call getenv
-        test rax, rax
-        jz .term
-        mov rdi, rax
-        call print_str
-        print space, 1
-.term:
-        mov rdi, term_prog_key
-        call getenv
-        test rax, rax
-        jz .done
-        mov rdi, rax
-        call print_parens
-.done:
-        print newline, 1
-        ret
+        from_env_bracket_pair term_key, term_prog_key
 
 ; out: `editor: hx`
 print_editor:
@@ -415,23 +419,4 @@ print_editor:
 ; out: `wm: niri (wayland)`
 print_wm:
         print wm_label, wm_label_len
-.wm:
-        mov rdi, wm_key
-        call getenv
-        test rax, rax
-        jz .done
-        mov rdi, rax
-        call print_str
-.type:
-        print space, 1
-        mov rdi, session_type_key
-        call getenv
-        test rax, rax
-        jz .done
-        mov rdi, rax
-        call print_parens
-
-.done:
-        print newline, 1
-        ret
-
+        from_env_bracket_pair wm_key, session_type_key
