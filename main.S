@@ -43,7 +43,7 @@ macro check_flag pos, short, long, jump {
 
 macro from_env_bracket_pair key1, key2 {
 .first:
-        mov rdi, key2
+        mov rdi, key1
         call getenv
         test rax, rax
         jz .done
