@@ -72,18 +72,23 @@ segment readable
                 db ESC, "[0m", ": "
         system_label_len = $ - system_label
 
-        user_key db "USER", 0
-
-        flag_h    db "-h", NUL
-        flag_help db "--help", NUL
         help_msg:
                 db ESC, "[2;3mhttps://github.com/plumj-am/fastfetch/issues", ESC, "[0m", NL
                 db "usage:", NL
                 db "  ", ESC, "[35mff", ESC, "[0m | ", ESC, "[35mfasmfetch", ESC, "[0m", " [options]", NL
                 db NL
                 db "options:", NL
-                db "  -h  --help     Show this help screen", NL
+                db "  -n  --no-header  Hide the 'fasmfetch' header from the output", NL
+                db "  -h  --help       Show this help screen", NL
         help_msg_len = $ - help_msg
+
+        user_key db "USER", 0
+
+        flag_h    db "-h", NUL
+        flag_help db "--help", NUL
+
+        flag_n         db "-n", NUL
+        flag_no_header db "--no-header", NUL
 
 segment readable writable
         init_rsp dq 0
@@ -107,9 +112,10 @@ _start:
 
         ; argc at [rsp], argv[1] at [rsp+16] as described above
         cmp qword [rsp], 1             ; argc > 1?
-        jle .run
+        jle .print_header
 
-        check_flag 16, flag_h, flag_help, .help
+        check_flag 16, flag_h, flag_help,      .help
+        check_flag 16, flag_n, flag_no_header, .fill_utsname
         ; fallthrough is intentional
         ; default to help if check_flag doesn't jmp somewhere
 
@@ -119,14 +125,18 @@ _start:
         xor rdi, rdi
         syscall
 
-.run:
+.print_header:
+        print welcome_msg, welcome_msg_len
+        ; fallthrough
+
+.fill_utsname:
         ; call uname once so everything can shared same buffer
         mov rax, SYS_UNAME
         mov rdi, utsname_buf
         syscall
+        ; fallthrough
 
-        print welcome_msg, welcome_msg_len
-
+.run:
         call print_user_at_hostname
         call print_kernel
 
