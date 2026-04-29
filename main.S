@@ -69,13 +69,18 @@ segment readable
 
         system_label:
                 db ESC, "[34m system"
+                db ESC, "[0m", ":   "
+        system_label_len = $ - system_label
 
         shell_label:
                 db ESC, "[34m shell"
                 db ESC, "[0m", ":    "
         shell_label_len = $ - shell_label
+
+        term_label:
+                db ESC, "[34m terminal"
                 db ESC, "[0m", ": "
-        system_label_len = $ - system_label
+        term_label_len = $ - term_label
 
         help_msg:
                 db ESC, "[2;3mhttps://github.com/plumj-am/fastfetch/issues", ESC, "[0m", NL
@@ -88,6 +93,7 @@ segment readable
         help_msg_len = $ - help_msg
 
         user_key  db "USER", 0
+        term_key  db "TERM", 0
         shell_key db "SHELL", 0
 
         flag_h    db "-h", NUL
@@ -149,6 +155,8 @@ _start:
 .run:
         call print_user_at_hostname
         call print_kernel
+        call print_shell
+        call print_term
 
         mov rax, SYS_EXIT
         xor rdi, rdi                   ; exit code 0 (xor smaller than `mov rdi, 0`)
@@ -331,6 +339,19 @@ print_shell:
         print shell_label, shell_label_len
 
         mov rdi, shell_key
+        call getenv
+        test rax, rax
+        jz .done
+        mov rdi, rax
+        call print_str
+        print newline, 1
+.done:
+        ret
+
+print_term:
+        print term_label, term_label_len
+
+        mov rdi, term_key
         call getenv
         test rax, rax
         jz .done

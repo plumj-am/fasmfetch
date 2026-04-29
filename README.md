@@ -5,10 +5,11 @@ Like fastfetch but a little bit faster. Written in flat assembler (fasm).
 ## Progress
 
 - [ ] ASCII art
-- [ ] username@~~hostname~~
+- [x] username@hostname
 - [ ] OS
 - [x] kernel+version
-- [ ] shell name
+- [x] shell name
+- [x] terminal name
 - [ ] displays
 - [ ] uptime
 - [ ] motherboard (host field in fastfetch)
