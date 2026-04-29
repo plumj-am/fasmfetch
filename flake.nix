@@ -56,12 +56,19 @@
         {
           default = pkgs.mkShell {
             buildInputs = [
+              # fasm
               asm-lsp-master
               pkgs.gcc
               pkgs.gdb
               pkgs.fasm
+
+              # task runner
               pkgs.just
               pkgs.nushell
+
+              # benchmarks
+              pkgs.fastfetch
+              pkgs.hyperfine
             ];
           };
         };

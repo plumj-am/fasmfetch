@@ -6,6 +6,7 @@ alias d := disasm
 alias i := info
 alias r := run
 alias w := watch
+alias be := bench
 
 [private]
 @default:
@@ -31,3 +32,6 @@ alias w := watch
 
 @watch *args:
     watch main.S { just run {{args}} }
+
+@bench:
+    hyperfine --warmup=50 --runs=1000 --shell=none "./target/fasmfetch" "fastfetch"
