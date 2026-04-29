@@ -277,6 +277,7 @@ getenv:
         jmp .loop
 .notfound:
         xor rax, rax
+        ret
 
 ;======================================
 ; data output procedures
@@ -293,9 +294,8 @@ print_user:
         jz .done
         mov rdi, rax
         call print_str
-
-        print ansi_rst, ansi_rst_len
 .done:
+        print ansi_rst, ansi_rst_len
         ret
 
 ; out: `yuzu`
