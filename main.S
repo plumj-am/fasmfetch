@@ -380,22 +380,19 @@ print_term:
 
 print_editor:
         print editor_label, editor_label_len
-.editor:
+
         mov rdi, editor_key
         call getenv
         test rax, rax
-        jz .visual
-        mov rdi, rax
-        call print_str
-        jmp .done
-.visual:
+        jnz .found
+
         mov rdi, visual_key
         call getenv
         test rax, rax
         jz .done
+.found:
         mov rdi, rax
         call print_str
-        ; fallthrough
 .done:
         print newline, 1
         ret
