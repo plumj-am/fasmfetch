@@ -69,6 +69,11 @@ segment readable
 
         system_label:
                 db ESC, "[34m system"
+
+        shell_label:
+                db ESC, "[34m shell"
+                db ESC, "[0m", ":    "
+        shell_label_len = $ - shell_label
                 db ESC, "[0m", ": "
         system_label_len = $ - system_label
 
@@ -82,7 +87,8 @@ segment readable
                 db "  -h  --help       Show this help screen", NL
         help_msg_len = $ - help_msg
 
-        user_key db "USER", 0
+        user_key  db "USER", 0
+        shell_key db "SHELL", 0
 
         flag_h    db "-h", NUL
         flag_help db "--help", NUL
@@ -319,4 +325,17 @@ print_kernel:
         call print_parens
 
         print newline, 1
+        ret
+
+print_shell:
+        print shell_label, shell_label_len
+
+        mov rdi, shell_key
+        call getenv
+        test rax, rax
+        jz .done
+        mov rdi, rax
+        call print_str
+        print newline, 1
+.done:
         ret
