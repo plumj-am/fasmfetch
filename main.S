@@ -67,6 +67,12 @@ segment readable
                 db ESC, "[0m", ":   "
         system_label_len = $ - system_label
 
+        user_key db "USER", 0
+        user_label:
+                db ESC, "[34muser"
+                db ESC, "[0m", ":     "
+        user_label_len = $ - user_label
+
         flag_h    db "-h", NUL
         flag_help db "--help", NUL
         help_msg:
@@ -120,6 +126,7 @@ _start:
 
         print welcome_msg, welcome_msg_len
 
+        call print_user
         call print_hostname
         call print_kernel
 
@@ -193,6 +200,56 @@ streq:
         xor rax, rax
         ret
 
+; search envp for a null-terminated key
+; in:       rdi = pointer to key string e.g. "USER"
+; out:      rax = pointer to value after the "=", or 0 if not found
+; clobbers: rax, rbx, rcx, rdx, rsi, rdi
+getenv:
+        ; find envp: skip argc, argv, NULL
+        mov rbx, [init_rsp]
+        mov rcx, [rbx]                 ; rcx = argc
+        lea rbx, [rbx + rcx*8 + 16]    ; skip argc + argv[0..argc-1] + NULL
+.loop:
+        mov rax, [rbx]                 ; load envp entry pointer
+        test rax, rax
+        jz .notfound
+
+        ; compare key with current env val
+        mov rsi, rdi                   ; key pointer
+        mov rdx, rax                   ; val pointer
+.cmp:
+        mov cl, [rsi]
+        test cl, cl
+        jz .match_check                ; end of key, check for "="
+        cmp cl, [rdx]
+        jne .next
+        inc rsi
+        inc rdx
+        jmp .cmp
+.match_check:
+        cmp byte [rdx], '='
+        jne .next
+        inc rdx                        ; point past "="
+        mov rax, rdx
+        ret
+.next:
+        add rbx, 8
+        jmp .loop
+.notfound:
+        xor rax, rax
+
+; out: `user:     jam`
+print_user:
+        print user_label, user_label_len
+        mov rdi, user_key
+        call getenv
+        test rax, rax
+        jz .done
+        mov rdi, rax
+        call print_str
+.done:
+        print newline, 1
+        ret
 
 ; out: `hostname: yuzu`
 print_hostname:
