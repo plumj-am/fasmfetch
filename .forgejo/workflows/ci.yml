@@ -1,0 +1,10 @@
+name: CI
+on: [push, pull_request]
+jobs:
+    check:
+        runs-on: strong
+        steps:
+            - uses: actions/checkout@v5
+            - run: |
+                  nix run github:juspay/omnix -- ci run --include-all-dependencies --github-output
+                  cat result | jq .result.ROOT.build.byName

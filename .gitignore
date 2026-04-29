@@ -1,6 +1,9 @@
 *
 !.gitignore
 
+!.forgejo
+!.forgejo/**/*
+
 !flake.*
 !.justfile
 !.asm-lsp.toml
