@@ -114,7 +114,7 @@ segment readable
         wm_label_len = $ - wm_label
 
         help_msg:
-                db ESC, "[2;3mhttps://github.com/plumj-am/fastfetch/issues", ESC, "[0m", NL
+                db ESC, "[2;3mhttps://github.com/plumj-am/fasmfetch/issues", ESC, "[0m", NL
                 db "usage:", NL
                 db "  ", ESC, "[35mff", ESC, "[0m | ", ESC, "[35mfasmfetch", ESC, "[0m", " [options]", NL
                 db NL
