@@ -48,6 +48,20 @@ macro from_env_bracket_pair key1, key2 {
         ret
 }
 
+macro check_flag short, long, jump {
+        mov rdi, [rsp + r12*8 + 8]
+        mov rsi, short
+        call streq
+        test rax, rax
+        jnz jump
+
+        mov rdi, [rsp + r12*8 + 8]
+        mov rsi, long
+        call streq
+        test rax, rax
+        jnz jump
+}
+
 segment readable
         space       db " "
         newline     db NL
@@ -164,29 +178,8 @@ _start:
         cmp r12, [rsp]                 ; i > argc?
         jge .args_done
 
-        mov rdi, [rsp + r12*8 + 8]     ; argv[i]
-        mov rsi, flag_h
-        call streq
-        test rax, rax
-        jnz .help
-
-        mov rdi, [rsp + r12*8 + 8]
-        mov rsi, flag_help
-        call streq
-        test rax, rax
-        jnz .help
-
-        mov rdi, [rsp + r12*8 + 8]
-        mov rsi, flag_n
-        call streq
-        test rax, rax
-        jnz .set_no_header
-
-        mov rdi, [rsp + r12*8 + 8]
-        mov rsi, flag_no_header
-        call streq
-        test rax, rax
-        jnz .set_no_header
+        check_flag flag_h, flag_help, .help
+        check_flag flag_n, flag_no_header, .set_no_header
 
         jmp .args_next
 
