@@ -34,4 +34,4 @@ alias be := bench
     watch main.S { just run {{args}} }
 
 @bench:
-    hyperfine --warmup=50 --runs=1000 --shell=none "./target/fasmfetch" "fastfetch"
+    hyperfine --warmup=10 --runs=100 --shell=none "./target/fasmfetch" "fastfetch"

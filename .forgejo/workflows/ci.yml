@@ -6,15 +6,15 @@ jobs:
         steps:
             - uses: actions/checkout@v5
             - run: |
-                  nix run github:juspay/omnix -- ci run --include-all-dependencies --github-output
+                  nix run github:juspay/omnix -- ci run --include-all-dependencies --github-output -- --builders ""
                   cat result | jq .result.ROOT.build.byName
     quick-bench:
         runs-on: strong
         steps:
             - uses: actions/checkout@v5
             - run: |
-                  nix build .#packages.x86_64-linux.fasmfetch
-                  nix shell nixpkgs#hyperfine nixpkgs#fastfetch \
+                  nix build --builders "" .#packages.x86_64-linux.fasmfetch
+                  nix shell --builders "" nixpkgs#hyperfine nixpkgs#fastfetch \
                       --command hyperfine --warmup=50 --runs=100 --shell=none \
                       "./result/bin/fasmfetch" "fastfetch" > result.txt
                       cat result.txt
