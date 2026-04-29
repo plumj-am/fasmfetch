@@ -18,7 +18,7 @@ ESC = 0x1B
 NL  = 10 ; newline
 NUL = 0  ; ASCII NUL
 
-
+; clobbers: rax, rdi, rsi, rdx
 macro print str, len {
         mov rax, SYS_WRITE
         mov rdi, 1
@@ -111,7 +111,8 @@ segment readable
         flag_no_header db "--no-header", NUL
 
 segment readable writable
-        init_rsp dq 0
+        init_rsp  dq 0
+        init_envp dq 0
 
         utsname_buf rb UTSNAME_SIZE
 
@@ -133,6 +134,12 @@ segment readable executable
 ;======================================
 _start:
         mov [init_rsp], rsp
+
+        ; find and store envp: skip argc, argv, NULL
+        mov rbx, [init_rsp]
+        mov rcx, [rbx]                 ; rcx = argc
+        lea rbx, [rbx + rcx*8 + 16]    ; skip argc + argv[0..argc-1] + NULL
+        mov [init_envp], rbx
 
         ; argc at [rsp], argv[1] at [rsp+16] as described above
         cmp qword [rsp], 1             ; argc > 1?
@@ -254,10 +261,7 @@ streq:
 ;   out:      rax = pointer to value after the "=", or 0 if not found
 ;   clobbers: rax, rbx, rcx, rdx, rsi, rdi
 getenv:
-        ; find envp: skip argc, argv, NULL
-        mov rbx, [init_rsp]
-        mov rcx, [rbx]                 ; rcx = argc
-        lea rbx, [rbx + rcx*8 + 16]    ; skip argc + argv[0..argc-1] + NULL
+        mov rbx, [init_envp]
 .loop:
         mov rax, [rbx]                 ; load envp entry pointer
         test rax, rax
