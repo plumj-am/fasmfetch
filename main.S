@@ -82,6 +82,11 @@ segment readable
                 db ESC, "[0m", ": "
         term_label_len = $ - term_label
 
+        editor_label:
+                db ESC, "[34m editor"
+                db ESC, "[0m", ":   "
+        editor_label_len = $ - editor_label
+
         help_msg:
                 db ESC, "[2;3mhttps://github.com/plumj-am/fastfetch/issues", ESC, "[0m", NL
                 db "usage:", NL
@@ -96,6 +101,8 @@ segment readable
         term_key      db "TERM", 0
         term_prog_key db "TERM_PROGRAM", 0
         shell_key     db "SHELL", 0
+        editor_key    db "EDITOR", 0
+        visual_key    db "VISUAL", 0
 
         flag_h    db "-h", NUL
         flag_help db "--help", NUL
@@ -158,6 +165,7 @@ _start:
         call print_kernel
         call print_shell
         call print_term
+        call print_editor
 
         mov rax, SYS_EXIT
         xor rdi, rdi                   ; exit code 0 (xor smaller than `mov rdi, 0`)
@@ -366,6 +374,28 @@ print_term:
         jz .done
         mov rdi, rax
         call print_parens
+.done:
+        print newline, 1
+        ret
+
+print_editor:
+        print editor_label, editor_label_len
+.editor:
+        mov rdi, editor_key
+        call getenv
+        test rax, rax
+        jz .visual
+        mov rdi, rax
+        call print_str
+        jmp .done
+.visual:
+        mov rdi, visual_key
+        call getenv
+        test rax, rax
+        jz .done
+        mov rdi, rax
+        call print_str
+        ; fallthrough
 .done:
         print newline, 1
         ret
