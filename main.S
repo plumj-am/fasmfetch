@@ -96,6 +96,9 @@ segment readable writable
         utsname_buf rb UTSNAME_SIZE
 
 segment readable executable
+;======================================
+; main execution procedure
+;
 ; stack at entry
 ;    [rsp]              - argc (program args count)
 ;    [rsp + 8]          - argv[0] (program name)
@@ -107,6 +110,7 @@ segment readable executable
 ; where
 ;    rsp  = register stack pointer
 ;    envp = environment pointer
+;======================================
 _start:
         mov [init_rsp], rsp
 
@@ -144,6 +148,10 @@ _start:
         xor rdi, rdi                   ; exit code 0 (xor smaller than `mov rdi, 0`)
         syscall
 
+;======================================
+; print helper procedures
+;======================================
+
 ; print null-terminated string
 ;   in:       rdi = pointer to string
 ;   clobbers: rax, rsi, rdx
@@ -173,6 +181,10 @@ print_parens:
         print paren_close, 1
 
         ret
+
+;======================================
+; string procedures
+;======================================
 
 ; scan for null terminator
 ;   in:  rdi = pointer to string
@@ -209,6 +221,10 @@ streq:
 .no:
         xor rax, rax
         ret
+
+;======================================
+; helper procedures
+;======================================
 
 ; search envp for a null-terminated key
 ;   in:       rdi = pointer to key string e.g. "USER"
@@ -247,6 +263,10 @@ getenv:
         jmp .loop
 .notfound:
         xor rax, rax
+
+;======================================
+; data output procedures
+;======================================
 
 ; out: `jam`
 print_user:
