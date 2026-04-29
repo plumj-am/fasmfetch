@@ -87,6 +87,11 @@ segment readable
                 db ESC, "[0m", ":   "
         editor_label_len = $ - editor_label
 
+        wm_label:
+                db ESC, "[34m wm"
+                db ESC, "[0m", ":       "
+        wm_label_len = $ - wm_label
+
         help_msg:
                 db ESC, "[2;3mhttps://github.com/plumj-am/fastfetch/issues", ESC, "[0m", NL
                 db "usage:", NL
@@ -103,6 +108,7 @@ segment readable
         shell_key     db "SHELL", 0
         editor_key    db "EDITOR", 0
         visual_key    db "VISUAL", 0
+        wm_key        db "XDG_CURRENT_DESKTOP", 0
 
         flag_h    db "-h", NUL
         flag_help db "--help", NUL
@@ -173,6 +179,7 @@ _start:
         call print_shell
         call print_term
         call print_editor
+        call print_wm
 
         mov rax, SYS_EXIT
         xor rdi, rdi                   ; exit code 0 (xor smaller than `mov rdi, 0`)
@@ -400,3 +407,17 @@ print_editor:
 .done:
         print newline, 1
         ret
+
+print_wm:
+        print wm_label, wm_label_len
+
+        mov rdi, wm_key
+        call getenv
+        test rax, rax
+        jz .done
+        mov rdi, rax
+        call print_str
+.done:
+        print newline, 1
+        ret
+
