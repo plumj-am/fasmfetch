@@ -138,7 +138,6 @@ segment readable
         flag_no_header db "--no-header", NUL
 
 segment readable writable
-        init_rsp  dq 0
         init_envp dq 0
 
         no_header_flag db 0
@@ -163,12 +162,11 @@ segment readable executable
 ;    envp = environment pointer
 ;======================================
 _start:
-        mov [init_rsp], rsp
-
         ; find and store envp: skip argc, argv, NULL
-        mov rbx, [init_rsp]
-        mov rcx, [rbx]                 ; rcx = argc
+        mov rbx, rsp
+        mov rcx, [rsp]                 ; rcx = argc
         lea rbx, [rbx + rcx*8 + 16]    ; skip argc + argv[0..argc-1] + NULL
+
         mov [init_envp], rbx
 
         mov r12, 1                     ; i = 1 to skip argv[0]
