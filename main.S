@@ -46,32 +46,33 @@ segment readable
         newline     db NL
         paren_open  db "("
         paren_close db ")"
+        at_symbol   db "@"
+
+        sep         db " ---", NL
+        sep_len     = $ - sep
 
         ansi_rst     db ESC, "[0m"
         ansi_rst_len = $ - ansi_rst
+        ansi_gre     db ESC, "[32m"
+        ansi_gre_len = $ - ansi_gre
         ansi_yel     db ESC, "[33m"
         ansi_yel_len = $ - ansi_yel
+        ansi_blu     db ESC, "[34m"
+        ansi_blu_len = $ - ansi_blu
+        ansi_mag     db ESC, "[35m"
+        ansi_mag_len = $ - ansi_mag
 
         welcome_msg:
                 db ESC, "[35m== fasmfetch =="
                 db ESC, "[0m", NL
         welcome_msg_len = $ - welcome_msg
 
-        hostname_label:
-                db ESC, "[34mhostname"
-                db ESC, "[0m", ": "
-        hostname_label_len = $ - hostname_label
-
         system_label:
-                db ESC, "[34msystem"
-                db ESC, "[0m", ":   "
+                db ESC, "[34m system"
+                db ESC, "[0m", ": "
         system_label_len = $ - system_label
 
         user_key db "USER", 0
-        user_label:
-                db ESC, "[34muser"
-                db ESC, "[0m", ":     "
-        user_label_len = $ - user_label
 
         flag_h    db "-h", NUL
         flag_help db "--help", NUL
@@ -126,8 +127,7 @@ _start:
 
         print welcome_msg, welcome_msg_len
 
-        call print_user
-        call print_hostname
+        call print_user_at_hostname
         call print_kernel
 
         mov rax, SYS_EXIT
@@ -238,30 +238,40 @@ getenv:
 .notfound:
         xor rax, rax
 
-; out: `user:     jam`
+; out: `jam`
 print_user:
-        print user_label, user_label_len
+        print ansi_gre, ansi_gre_len
+        print space, 1
+
         mov rdi, user_key
         call getenv
         test rax, rax
         jz .done
         mov rdi, rax
         call print_str
+
+        print ansi_rst, ansi_rst_len
 .done:
-        print newline, 1
         ret
 
-; out: `hostname: yuzu`
+; out: `yuzu`
 print_hostname:
-        print hostname_label, hostname_label_len
-
         mov rdi, utsname_buf + UTSNAME_NODENAME
         call print_str
-
-        print newline, 1
         ret
 
-; out: `system:      Linux 6.19.12-zen1 (x86_64)`
+; out: `jam@yuzu`
+print_user_at_hostname:
+        call print_user
+        print at_symbol, 1
+        print ansi_blu, ansi_blu_len
+        call print_hostname
+        print ansi_rst, ansi_rst_len
+        print newline, 1
+        print sep, sep_len
+        ret
+
+; out: `system: Linux 6.19.12-zen1 (x86_64)`
 print_kernel:
         print system_label, system_label_len
 
