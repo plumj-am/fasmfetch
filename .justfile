@@ -15,8 +15,8 @@ alias w := watch
     mkdir target
     fasm main.S target/fasmfetch
 
-@run: build
-    target/fasmfetch
+@run *args: build
+    target/fasmfetch {{args}}
 
 @clean:
     rm --force *.bin *.o target/*;
@@ -28,5 +28,5 @@ alias w := watch
     file target/fasmfetch
     readelf --file-header target/fasmfetch
 
-@watch:
-    watch main.S { just run }
+@watch *args:
+    watch main.S { just run {{args}} }

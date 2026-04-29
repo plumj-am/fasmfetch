@@ -21,6 +21,20 @@ macro print str, len {
         syscall
 }
 
+macro check_flag pos, short, long, jump {
+        mov rdi, [rsp + pos]
+        mov rsi, short
+        call streq
+        test rax, rax
+        jnz jump
+
+        mov rdi, [rsp + pos]
+        mov rsi, long
+        call streq
+        test rax, rax
+        jnz jump
+}
+
 segment readable
         space       db " "
         newline     db 10
@@ -33,9 +47,8 @@ segment readable
         ansi_yel_len = $ - ansi_yel
 
         welcome_msg:
-                db "Welcome to "
-                db 0x1B, "[35mfasmfetch"
-                db 0x1B, "[0m!", 10, 10
+                db 0x1B, "[35m== fasmfetch =="
+                db 0x1B, "[0m", 10
         welcome_msg_len = $ - welcome_msg
 
         hostname_label:
@@ -47,6 +60,15 @@ segment readable
                 db 0x1B, "[34msystem"
                 db 0x1B, "[0m", ":   "
         system_label_len = $ - system_label
+
+        flag_h    db "-h", 0
+        flag_help db "--help", 0
+        help_msg:
+                db "github:plumj-am/fastfetch", 10
+                db "usage: ", 0x1B, "[35mfasmfetch", 0x1B, "[0m", " <ARGS>", 10
+                db 10
+                db "-h  --help     Show this help screen"
+        help_msg_len = $ - help_msg
 
 segment readable writable
         init_rsp dq 0
@@ -68,6 +90,21 @@ segment readable executable
 _start:
         mov [init_rsp], rsp
 
+        ; argc at [rsp], argv[1] at [rsp+16] as described above
+        cmp qword [rsp], 1             ; argc > 1?
+        jle .run
+
+        check_flag 16, flag_h, flag_help, .help
+        ; fallthrough is intentional
+        ; default to help if check_flag doesn't jmp somewhere
+
+.help:
+        print help_msg, help_msg_len
+        mov rax, SYS_EXIT
+        xor rdi, rdi
+        syscall
+
+.run:
         ; call uname once so everything can shared same buffer
         mov rax, SYS_UNAME
         mov rdi, utsname_buf
@@ -125,6 +162,29 @@ strlen:
         jmp .loop
 .done:
         ret
+
+; compare two null-terminated strings
+;   in:       rdi = string a, rsi = string b
+;   out:      rax = 1 if eq, otherwise 0
+;   clobbers: al, dl, rcx
+streq:
+        xor rcx, rcx
+.loop:
+        mov al, [rdi + rcx]
+        mov dl, [rsi + rcx]
+        cmp al, dl
+        jne .no
+        test al, al                    ; both zero -> end of both strings
+        jz .yes
+        inc rcx
+        jmp .loop
+.yes:
+        mov rax, 1
+        ret
+.no:
+        xor rax, rax
+        ret
+
 
 ; out: `hostname: yuzu`
 print_hostname:
