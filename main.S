@@ -92,9 +92,10 @@ segment readable
                 db "  -h  --help       Show this help screen", NL
         help_msg_len = $ - help_msg
 
-        user_key  db "USER", 0
-        term_key  db "TERM", 0
-        shell_key db "SHELL", 0
+        user_key      db "USER", 0
+        term_key      db "TERM", 0
+        term_prog_key db "TERM_PROGRAM", 0
+        shell_key     db "SHELL", 0
 
         flag_h    db "-h", NUL
         flag_help db "--help", NUL
@@ -350,13 +351,21 @@ print_shell:
 
 print_term:
         print term_label, term_label_len
-
+.program:
         mov rdi, term_key
+        call getenv
+        test rax, rax
+        jz .term
+        mov rdi, rax
+        call print_str
+        print space, 1
+.term:
+        mov rdi, term_prog_key
         call getenv
         test rax, rax
         jz .done
         mov rdi, rax
-        call print_str
-        print newline, 1
+        call print_parens
 .done:
+        print newline, 1
         ret
