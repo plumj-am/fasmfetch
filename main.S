@@ -201,9 +201,9 @@ streq:
         ret
 
 ; search envp for a null-terminated key
-; in:       rdi = pointer to key string e.g. "USER"
-; out:      rax = pointer to value after the "=", or 0 if not found
-; clobbers: rax, rbx, rcx, rdx, rsi, rdi
+;   in:       rdi = pointer to key string e.g. "USER"
+;   out:      rax = pointer to value after the "=", or 0 if not found
+;   clobbers: rax, rbx, rcx, rdx, rsi, rdi
 getenv:
         ; find envp: skip argc, argv, NULL
         mov rbx, [init_rsp]
