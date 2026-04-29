@@ -345,8 +345,8 @@ print_shell:
         jz .done
         mov rdi, rax
         call print_str
-        print newline, 1
 .done:
+        print newline, 1
         ret
 
 print_term:
