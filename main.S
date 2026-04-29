@@ -27,20 +27,6 @@ macro print str, len {
         syscall
 }
 
-macro check_flag pos, short, long, jump {
-        mov rdi, [rsp + pos]
-        mov rsi, short
-        call streq
-        test rax, rax
-        jnz jump
-
-        mov rdi, [rsp + pos]
-        mov rsi, long
-        call streq
-        test rax, rax
-        jnz jump
-}
-
 macro from_env_bracket_pair key1, key2 {
 .first:
         mov rdi, key1
@@ -172,28 +158,37 @@ _start:
         lea rbx, [rbx + rcx*8 + 16]    ; skip argc + argv[0..argc-1] + NULL
         mov [init_envp], rbx
 
-        jmp .tmp ; HACK: until args_loop is ready
-
         mov r12, 1                     ; i = 1 to skip argv[0]
 
 .args_loop:
         cmp r12, [rsp]                 ; i > argc?
         jge .args_done
 
-        ; TODO:
-        ; iterate all
-        ; use .set_no_header
+        mov rdi, [rsp + r12*8 + 8]     ; argv[i]
+        mov rsi, flag_h
+        call streq
+        test rax, rax
+        jnz .help
 
-.tmp: ; HACK: until .args_loop is ready
+        mov rdi, [rsp + r12*8 + 8]
+        mov rsi, flag_help
+        call streq
+        test rax, rax
+        jnz .help
 
-        ; argc at [rsp], argv[1] at [rsp+16] as described above
-        cmp qword [rsp], 1             ; argc > 1?
-        jle .print_header
+        mov rdi, [rsp + r12*8 + 8]
+        mov rsi, flag_n
+        call streq
+        test rax, rax
+        jnz .set_no_header
 
-        check_flag 16, flag_h, flag_help,      .help
-        check_flag 16, flag_n, flag_no_header, .fill_utsname
-        ; fallthrough is intentional
-        ; default to help if check_flag doesn't jmp somewhere
+        mov rdi, [rsp + r12*8 + 8]
+        mov rsi, flag_no_header
+        call streq
+        test rax, rax
+        jnz .set_no_header
+
+        jmp .args_next
 
 .set_no_header:
         mov byte [no_header_flag], 1
@@ -205,6 +200,7 @@ _start:
 .args_done:
         cmp byte [no_header_flag], 1
         je .fill_utsname
+        ; fallthrough
 
 .print_header:
         print welcome_msg, welcome_msg_len
