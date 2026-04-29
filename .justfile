@@ -14,6 +14,7 @@ alias w := watch
 @build:
     mkdir target
     fasm main.S target/fasmfetch
+    ln --symbolic --force fasmfetch target/ff
 
 @run *args: build
     target/fasmfetch {{args}}

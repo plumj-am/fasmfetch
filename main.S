@@ -67,13 +67,15 @@ segment readable
                 db ESC, "[0m", ":   "
         system_label_len = $ - system_label
 
-        flag_h    db "-h", 0
-        flag_help db "--help", 0
+        flag_h    db "-h", NUL
+        flag_help db "--help", NUL
         help_msg:
-                db "github:plumj-am/fastfetch", 10
-                db "usage: ", 0x1B, "[35mfasmfetch", 0x1B, "[0m", " <ARGS>", 10
-                db 10
-                db "-h  --help     Show this help screen"
+                db ESC, "[2;3mhttps://github.com/plumj-am/fastfetch/issues", ESC, "[0m", NL
+                db "usage:", NL
+                db "  ", ESC, "[35mff", ESC, "[0m | ", ESC, "[35mfasmfetch", ESC, "[0m", " [options]", NL
+                db NL
+                db "options:", NL
+                db "  -h  --help     Show this help screen", NL
         help_msg_len = $ - help_msg
 
 segment readable writable

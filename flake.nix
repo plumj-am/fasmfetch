@@ -32,6 +32,7 @@
             installPhase = ''
               mkdir -p $out/bin
               install -m755 fasmfetch $out/bin/fasmfetch
+              ln --symbolic $out/bin/fasmfetch $out/bin/ff
             '';
           };
         in
