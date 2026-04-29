@@ -142,7 +142,10 @@ segment readable writable
         init_rsp  dq 0
         init_envp dq 0
 
+        no_header_flag db 0
+
         utsname_buf rb UTSNAME_SIZE
+
 
 segment readable executable
 ;======================================
@@ -169,6 +172,20 @@ _start:
         lea rbx, [rbx + rcx*8 + 16]    ; skip argc + argv[0..argc-1] + NULL
         mov [init_envp], rbx
 
+        jmp .tmp ; HACK: until args_loop is ready
+
+        mov r12, 1                     ; i = 1 to skip argv[0]
+
+.args_loop:
+        cmp r12, [rsp]                 ; i > argc?
+        jge .args_done
+
+        ; TODO:
+        ; iterate all
+        ; use .set_no_header
+
+.tmp: ; HACK: until .args_loop is ready
+
         ; argc at [rsp], argv[1] at [rsp+16] as described above
         cmp qword [rsp], 1             ; argc > 1?
         jle .print_header
@@ -178,15 +195,26 @@ _start:
         ; fallthrough is intentional
         ; default to help if check_flag doesn't jmp somewhere
 
+.set_no_header:
+        mov byte [no_header_flag], 1
+
+.args_next:
+        inc r12
+        jmp .args_loop
+
+.args_done:
+        cmp byte [no_header_flag], 1
+        je .fill_utsname
+
+.print_header:
+        print welcome_msg, welcome_msg_len
+        jmp .fill_utsname
+
 .help:
         print help_msg, help_msg_len
         mov rax, SYS_EXIT
         xor rdi, rdi
         syscall
-
-.print_header:
-        print welcome_msg, welcome_msg_len
-        ; fallthrough
 
 .fill_utsname:
         ; call uname once so everything can shared same buffer
