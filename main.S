@@ -45,7 +45,6 @@ macro from_env_bracket_pair key1, key2 {
         call print_parens
 .done:
         print newline, 1
-        ret
 }
 
 macro check_flag short, long, jump {
@@ -412,6 +411,7 @@ print_shell:
 print_term:
         print term_label, term_label_len
         from_env_bracket_pair term_key, term_prog_key
+        ret
 
 ; out: `editor: hx`
 print_editor:
@@ -437,3 +437,4 @@ print_editor:
 print_wm:
         print wm_label, wm_label_len
         from_env_bracket_pair wm_key, session_type_key
+        ret
