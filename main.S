@@ -13,6 +13,12 @@ SYS_WRITE = 1
 SYS_UNAME = 63
 SYS_EXIT  = 60
 
+ESC = 0x1B
+
+NL  = 10 ; newline
+NUL = 0  ; ASCII NUL
+
+
 macro print str, len {
         mov rax, SYS_WRITE
         mov rdi, 1
@@ -37,28 +43,28 @@ macro check_flag pos, short, long, jump {
 
 segment readable
         space       db " "
-        newline     db 10
+        newline     db NL
         paren_open  db "("
         paren_close db ")"
 
-        ansi_rst     db 0x1B, "[0m"
+        ansi_rst     db ESC, "[0m"
         ansi_rst_len = $ - ansi_rst
-        ansi_yel     db 0x1B, "[33m"
+        ansi_yel     db ESC, "[33m"
         ansi_yel_len = $ - ansi_yel
 
         welcome_msg:
-                db 0x1B, "[35m== fasmfetch =="
-                db 0x1B, "[0m", 10
+                db ESC, "[35m== fasmfetch =="
+                db ESC, "[0m", NL
         welcome_msg_len = $ - welcome_msg
 
         hostname_label:
-                db 0x1B, "[34mhostname"
-                db 0x1B, "[0m", ": "
+                db ESC, "[34mhostname"
+                db ESC, "[0m", ": "
         hostname_label_len = $ - hostname_label
 
         system_label:
-                db 0x1B, "[34msystem"
-                db 0x1B, "[0m", ":   "
+                db ESC, "[34msystem"
+                db ESC, "[0m", ":   "
         system_label_len = $ - system_label
 
         flag_h    db "-h", 0
