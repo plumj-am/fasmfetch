@@ -1,6 +1,7 @@
 format ELF64 executable 3
 entry _start
 
+; TODO: remove unused consts after sys stuff done
 UTSNAME_SYSNAME    = 0   ; OS
 UTSNAME_NODENAME   = 65  ; hostname
 UTSNAME_RELEASE    = 130 ; kernel
@@ -9,9 +10,26 @@ UTSNAME_MACHINE    = 260 ; arch
 UTSNAME_DOMAINNAME = 325
 UTSNAME_SIZE       = 390
 
-SYS_WRITE = 1
-SYS_UNAME = 63
-SYS_EXIT  = 60
+SYS_UPTIME        = 0
+SYS_LOADS         = 8   ; size 24 - 1, 5, 15 min load avgs
+SYS_RAM_TOTAL     = 32
+SYS_RAM_FREE      = 40
+SYS_RAM_SHARED    = 48
+SYS_RAM_BUFFER    = 56
+SYS_SWAP_TOTAL    = 64
+SYS_SWAP_FREE     = 72
+SYS_PROCS         = 80  ; size 2 - number of processes
+__PADDING         = 82  ; size 6
+SYS_RAM_HIGH      = 88
+SYS_RAM_HIGH_FREE = 96
+SYS_MEM_UNIT      = 104
+__PADDING         = 108 ; size 4
+SYSINFO_SIZE      = 112
+
+SYS_WRITE   = 1
+SYS_UNAME   = 63
+SYS_EXIT    = 60
+SYS_SYSINFO = 99
 
 ESC = 0x1B
 
@@ -143,6 +161,7 @@ segment readable writable
         no_header_flag db 0
 
         utsname_buf rb UTSNAME_SIZE
+        sysinfo_buf rb SYSINFO_SIZE
 
 
 segment readable executable
