@@ -433,7 +433,9 @@ print_duration:
 
         cmp r9, 1                      ; if we printed days, need space
         jne .hours_print
+        push rax
         print space, 1
+        pop rax
 .hours_print:
         mov rdi, itoa_buf
         call itoa
@@ -455,7 +457,9 @@ print_duration:
 
         cmp r9, 1                      ; if we printed days, need space
         jne .minutes_print
+        push rax
         print space, 1
+        pop rax
 .minutes_print:
         mov rdi, itoa_buf
         call itoa
@@ -474,7 +478,9 @@ print_duration:
 .maybe_skip:
         test rax, rax                  ; secs == 0?
         jz .done                       ; true + have higher units then done, skip secs
+        push rax
         print space, 1
+        pop rax
 .print_seconds:
         mov rdi, itoa_buf
         call itoa
