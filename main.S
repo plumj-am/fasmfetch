@@ -192,6 +192,15 @@ segment readable
                 db NL
                 db "options:", NL
                 db "  -n  --no-header  Hide the 'fasmfetch' header from the output", NL
+                db "      --no-kernel  Hide the kernel line", NL
+                db "      --no-shell   Hide the shell line", NL
+                db "      --no-term    Hide the terminal line", NL
+                db "      --no-editor  Hide the editor line", NL
+                db "      --no-wm      Hide the wm line", NL
+                db "      --no-uptime  Hide the uptime line", NL
+                db "      --no-procs   Hide the procs line", NL
+                db "      --no-ram     Hide the ram line", NL
+                db "      --no-swap    Hide the swap line", NL
                 db "  -h  --help       Show this help screen", NL
         help_msg_len = $ - help_msg
 
