@@ -156,6 +156,11 @@ segment readable
         wm_key           db "XDG_CURRENT_DESKTOP", 0
         session_type_key db "XDG_SESSION_TYPE", 0
 
+        day_suffix  db "d"
+        hour_suffix db "h"
+        min_suffix  db "m"
+        sec_suffix  db "s"
+
         flag_h    db "-h", NUL
         flag_help db "--help", NUL
 
@@ -391,6 +396,94 @@ getenv:
         xor rax, rax
         ret
 
+; in:       rax = total secs
+; out:      nothing (stdout)
+; clobbers: rax, rcx, rdx, rdi, rsi, r8, r9
+print_duration:
+        xor r9, r9                     ; tracks if we printed
+        mov r8, rax                    ; r8 = total seconds
+.days:
+        mov rax, r8                    ; load remaining
+        mov rcx, 86400
+        xor rdx, rdx
+        div rcx                        ; rax = days, rdx = remainder
+
+        test rax, rax
+        jz .hours                      ; skip to hours if 0
+
+        mov r8, rdx                    ; save remainder
+
+        mov rdi, itoa_buf
+        call itoa
+        mov rdi, rsi
+        call print_str
+        print day_suffix, 1
+
+        mov r9, 1                      ; set printed flag
+.hours:
+        mov rax, r8
+        mov rcx, 3600
+        xor rdx, rdx
+        div rcx                        ; rax = hours, rdx = remainder
+
+        test rax, rax
+        jz .minutes                    ; skip to minutes if 0
+
+        mov r8, rdx                    ; save remainder
+
+        cmp r9, 1                      ; if we printed days, need space
+        jne .hours_print
+        print space, 1
+.hours_print:
+        mov rdi, itoa_buf
+        call itoa
+        mov rdi, rsi
+        call print_str
+        print hour_suffix, 1
+
+        mov r9, 1
+.minutes:
+        mov rax, r8
+        mov rcx, 60
+        xor rdx, rdx
+        div rcx                        ; rax = minutes, rdx = remainder
+
+        test rax, rax
+        jz .seconds                    ; skip to seconds if 0
+
+        mov r8, rdx                    ; save remainder
+
+        cmp r9, 1                      ; if we printed days, need space
+        jne .minutes_print
+        print space, 1
+.minutes_print:
+        mov rdi, itoa_buf
+        call itoa
+        mov rdi, rsi
+        call print_str
+        print min_suffix, 1
+
+        mov r9, 1
+.seconds:
+        mov rax, r8                    ; rax = remaining seconds should be <60
+
+        test r9, r9                    ; check if printed d/h/m
+        jnz .maybe_skip                ; if so, check if secs = 0
+
+        jmp .print_seconds             ; must print even if 0
+.maybe_skip:
+        test rax, rax                  ; secs == 0?
+        jz .done                       ; true + have higher units then done, skip secs
+        print space, 1
+.print_seconds:
+        mov rdi, itoa_buf
+        call itoa
+        mov rdi, rsi
+        call print_str
+        print sec_suffix, 1
+.done:
+        ret
+
 ;======================================
 ; data output procedures
 ;======================================
@@ -499,11 +592,7 @@ print_uptime:
         print uptime_label, uptime_label_len
 
         mov rax, qword [sysinfo_buf]   ; uptime offset 0 in struct
-        mov rdi, itoa_buf
-        call itoa                      ; rsi = string start
-
-        mov rdi, rsi
-        call print_str
+        call print_duration            ; rax = secs since boot
 
         print newline, 1
         ret
