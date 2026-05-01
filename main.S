@@ -20,6 +20,20 @@ SYS_UNAME   = 63
 SYS_EXIT    = 60
 SYS_SYSINFO = 99
 
+; show mask bit flags
+; NOTE: idk if best way
+; it's just 1,2,4,8,...
+SHOW_KERNEL = 1 shl 0                  ; shl = shift left
+SHOW_SHELL  = 1 shl 1
+SHOW_TERM   = 1 shl 2
+SHOW_EDITOR = 1 shl 3
+SHOW_WM     = 1 shl 4
+SHOW_UPTIME = 1 shl 5
+SHOW_PROCS  = 1 shl 6
+SHOW_RAM    = 1 shl 7
+SHOW_SWAP   = 1 shl 8
+SHOW_ALL    = (1 shl 9) - 1            ; mask all enabled
+
 ESC = 0x1B
 
 NL  = 10 ; newline
@@ -75,6 +89,23 @@ macro check_flag short, long, jump {
         call streq
         test rax, rax
         jnz jump
+}
+
+; check if --no-* flag is present, clear corresponding bit in show_mask
+;   in: flag string, bit constant
+macro check_no_flag flag_str, bit {
+        mov rdi, [rsp + r12*8 + 8]
+        mov rsi, flag_str
+        call streq
+        test rax, rax
+        jz @f
+        mov rax, bit
+        not rax
+        and [show_mask], rax
+; anonymous label
+; stops expanded macro conflicting with surrounding labels
+; so we can "return" from macro without disturbing parent procedures
+@@:
 }
 
 segment readable
@@ -184,10 +215,21 @@ segment readable
         flag_n         db "-n", NUL
         flag_no_header db "--no-header", NUL
 
+        flag_no_kernel db "--no-kernel", NUL
+        flag_no_shell  db "--no-shell", NUL
+        flag_no_term   db "--no-term", NUL
+        flag_no_editor db "--no-editor", NUL
+        flag_no_wm     db "--no-wm", NUL
+        flag_no_uptime db "--no-uptime", NUL
+        flag_no_procs  db "--no-procs", NUL
+        flag_no_ram    db "--no-ram", NUL
+        flag_no_swap   db "--no-swap", NUL
+
 segment readable writable
         init_envp dq 0
 
         no_header_flag db 0
+        show_mask      dq SHOW_ALL     ; show all lines by default
 
         utsname_buf rb 390
         sysinfo_buf rb 112
@@ -227,6 +269,16 @@ _start:
 
         check_flag flag_h, flag_help, .help
         check_flag flag_n, flag_no_header, .set_no_header
+
+        check_no_flag flag_no_kernel, SHOW_KERNEL
+        check_no_flag flag_no_shell,  SHOW_SHELL
+        check_no_flag flag_no_term,   SHOW_TERM
+        check_no_flag flag_no_editor, SHOW_EDITOR
+        check_no_flag flag_no_wm,     SHOW_WM
+        check_no_flag flag_no_uptime, SHOW_UPTIME
+        check_no_flag flag_no_procs,  SHOW_PROCS
+        check_no_flag flag_no_ram,    SHOW_RAM
+        check_no_flag flag_no_swap,   SHOW_SWAP
 
         jmp .args_next
 
@@ -268,16 +320,54 @@ _start:
 
 .run:
         call print_user_at_hostname
+
+        test [show_mask], SHOW_KERNEL
+        jz .skip_kernel
         call print_kernel
+
+; I think the order is ok lmao
+; NOTE: check order correct when adding new stuff
+.skip_kernel:
+        test [show_mask], SHOW_SHELL
+        jz .skip_shell
         call print_shell
+
+.skip_shell:
+        test [show_mask], SHOW_TERM
+        jz .skip_term
         call print_term
+
+.skip_term:
+        test [show_mask], SHOW_EDITOR
+        jz .skip_editor
         call print_editor
+
+.skip_editor:
+        test [show_mask], SHOW_WM
+        jz .skip_wm
         call print_wm
+
+.skip_wm:
+        test [show_mask], SHOW_UPTIME
+        jz .skip_uptime
         call print_uptime
+
+.skip_uptime:
+        test [show_mask], SHOW_PROCS
+        jz .skip_procs
         call print_procs
+
+.skip_procs:
+        test [show_mask], SHOW_RAM
+        jz .skip_ram
         call print_ram
+
+.skip_ram:
+        test [show_mask], SHOW_SWAP
+        jz .skip_swap
         call print_swap
 
+.skip_swap:
         mov rax, SYS_EXIT
         xor rdi, rdi                   ; exit code 0 (xor smaller than `mov rdi, 0`)
         syscall
