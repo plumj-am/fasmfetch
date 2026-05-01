@@ -92,6 +92,7 @@ segment readable
         paren_open  db "("
         paren_close db ")"
         at_symbol   db "@"
+        slash       db "/"
 
         sep         db " ---", NL
         sep_len     = $ - sep
@@ -141,6 +142,16 @@ segment readable
                 db ESC, "[34m uptime"
                 db ESC, "[0m", ":   "
         uptime_label_len = $ - uptime_label
+
+        ram_label:
+                db ESC, "[34m ram"
+                db ESC, "[0m", ":      "
+        ram_label_len = $ - ram_label
+
+        gb_suffix:
+                db ESC, "[33m GiB"
+                db ESC, "[0m"
+        gb_suffix_len = $ - gb_suffix
 
         help_msg:
                 db ESC, "[2;3mhttps://github.com/plumj-am/fasmfetch/issues", ESC, "[0m", NL
@@ -262,6 +273,7 @@ _start:
         call print_editor
         call print_wm
         call print_uptime
+        call print_ram
 
         mov rax, SYS_EXIT
         xor rdi, rdi                   ; exit code 0 (xor smaller than `mov rdi, 0`)
@@ -607,3 +619,40 @@ print_uptime:
 
         print newline, 1
         ret
+
+; out: `ram: 17/31 GiB`
+print_ram:
+        print ram_label, ram_label_len
+
+        mov rbx, qword [sysinfo_buf + SYS_RAM_TOTAL]
+        mov rax, rbx                   ; keep for later
+        sub rax, qword [sysinfo_buf + SYS_RAM_FREE]
+        sub rax, qword [sysinfo_buf + SYS_RAM_BUFFER]
+
+        mov rcx, 1073741824            ; 1 GiB in bytes
+        xor rdx, rdx
+        div rcx                        ; rax = used GiB
+
+        push rbx                       ; save total bytes
+
+        mov rdi, itoa_buf
+        call itoa
+        mov rdi, rsi
+        call print_str
+
+        print slash, 1
+
+        pop rax
+        mov rcx, 1073741824            ; reload bcs syscall killed rcx
+        xor rdx, rdx
+        div rcx                        ; rax = total GiB
+
+        mov rdi, itoa_buf
+        call itoa
+        mov rdi, rsi
+        call print_str
+
+        print gb_suffix, gb_suffix_len
+        print newline, 1
+        ret
+
