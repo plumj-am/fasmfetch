@@ -39,13 +39,17 @@ NL  = 10 ; newline
 NUL = 0  ; ASCII NUL
 
 ; print a string
-;   clobbers: rax, rdi, rsi, rdx (syscall: rcx, r11)
+;   clobbers: rax, rdi, rsi, rdx
 macro print str, len {
+        push rcx
+        push r11
         mov rax, SYS_WRITE
         mov rdi, 1
         mov rsi, str
         mov rdx, len
         syscall
+        pop r11
+        pop rcx
 }
 
 ; get 2 environment variable values by key and print as `key1 (key2)`
@@ -297,14 +301,16 @@ _start:
 
 ; print null-terminated string
 ;   in:       rdi = pointer to string
-;   clobbers: rax, rdi, rsi, rdx
+;   clobbers: rax, rdi, rsi, rdx, r11
 print_str:
+        push rcx
         call strlen                    ; rax = len, rdi intact
         mov rsi, rdi                   ; pointer to rsi for write
         mov rdx, rax
         mov rax, SYS_WRITE
         mov rdi, 1
         syscall
+        pop rcx
         ret
 
 ; prints ( [color]str[reset] )
@@ -659,6 +665,7 @@ print_ram:
         xor rdx, rdx
         div rcx                        ; rax = used GiB
 
+        push rcx                       ; save divisor
         push rbx                       ; save total bytes
 
         mov rdi, itoa_buf
@@ -668,8 +675,8 @@ print_ram:
 
         print slash, 1
 
-        pop rax
-        mov rcx, 1073741824            ; reload bcs syscall killed rcx
+        pop rax                        ; rax = total bytes
+        pop rcx                        ; rcx = divisor
         xor rdx, rdx
         div rcx                        ; rax = total GiB
 
@@ -694,6 +701,7 @@ print_swap:
         xor rdx, rdx
         div rcx                        ; rax = used GiB
 
+        push rcx                       ; save divisor
         push rbx                       ; save total bytes
 
         mov rdi, itoa_buf
@@ -703,8 +711,8 @@ print_swap:
 
         print slash, 1
 
-        pop rax
-        mov rcx, 1073741824            ; reload bcs syscall killed rcx
+        pop rax                        ; rax = total bytes
+        pop rcx                        ; rcx = divisor
         xor rdx, rdx
         div rcx                        ; rax = total GiB
 
