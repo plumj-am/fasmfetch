@@ -26,6 +26,8 @@ SYS_MEM_UNIT      = 104
 __PADDING         = 108 ; size 4
 SYSINFO_SIZE      = 112
 
+ITOABUF_SIZE = 32 ; large enough for 64-bit decimal + nl
+
 SYS_WRITE   = 1
 SYS_UNAME   = 63
 SYS_EXIT    = 60
@@ -130,6 +132,11 @@ segment readable
                 db ESC, "[0m", ":       "
         wm_label_len = $ - wm_label
 
+        uptime_label:
+                db ESC, "[34m uptime"
+                db ESC, "[0m", ":   "
+        uptime_label_len = $ - uptime_label
+
         help_msg:
                 db ESC, "[2;3mhttps://github.com/plumj-am/fasmfetch/issues", ESC, "[0m", NL
                 db "usage:", NL
@@ -162,6 +169,8 @@ segment readable writable
 
         utsname_buf rb UTSNAME_SIZE
         sysinfo_buf rb SYSINFO_SIZE
+
+        itoa_buf rb ITOABUF_SIZE
 
 
 segment readable executable
@@ -228,6 +237,13 @@ _start:
         syscall
         ; fallthrough
 
+.fill_sysinfo:
+        ; call uname once so everything can shared same buffer
+        mov rax, SYS_SYSINFO
+        mov rdi, sysinfo_buf
+        syscall
+        ; fallthrough
+
 .run:
         call print_user_at_hostname
         call print_kernel
@@ -235,6 +251,7 @@ _start:
         call print_term
         call print_editor
         call print_wm
+        call print_uptime
 
         mov rax, SYS_EXIT
         xor rdi, rdi                   ; exit code 0 (xor smaller than `mov rdi, 0`)
@@ -312,6 +329,26 @@ streq:
         ret
 .no:
         xor rax, rax
+        ret
+
+; convert unsigned 64-bit int to decimal string
+; in:       rax = number, rdi = output buffer (large needed)
+; out:      rsi = buffer pointer (null terminated)
+; clobbers: rax, rcx, rdx
+itoa:
+        mov rcx, 10                    ; divisor
+        add rdi, 30                    ; build backwards from near end
+        mov byte [rdi], 0              ; null term
+.loop:
+        xor rdx, rdx
+        div rcx                        ; rax /= 10, rdx = digit
+        add dl, '0'
+        dec rdi
+        mov [rdi], dl
+        test rax, rax
+        jnz .loop
+
+        mov rsi, rdi                   ; rsi = string start
         ret
 
 ;======================================
@@ -454,4 +491,19 @@ print_editor:
 print_wm:
         print wm_label, wm_label_len
         from_env_bracket_pair wm_key, session_type_key
+        ret
+
+; TODO: format correctly, only shows seconds for now
+; out: `uptime: 249882`
+print_uptime:
+        print uptime_label, uptime_label_len
+
+        mov rax, qword [sysinfo_buf]   ; uptime offset 0 in struct
+        mov rdi, itoa_buf
+        call itoa                      ; rsi = string start
+
+        mov rdi, rsi
+        call print_str
+
+        print newline, 1
         ret
