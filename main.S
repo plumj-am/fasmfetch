@@ -5,28 +5,15 @@ entry _start
 UTSNAME_SYSNAME    = 0   ; OS
 UTSNAME_NODENAME   = 65  ; hostname
 UTSNAME_RELEASE    = 130 ; kernel
-UTSNAME_VERSION    = 195
-UTSNAME_MACHINE    = 260 ; arch
-UTSNAME_DOMAINNAME = 325
-UTSNAME_SIZE       = 390
+UTSNAME_MACHINE    = 260 ; size 65 - arch
 
 SYS_UPTIME        = 0
-SYS_LOADS         = 8   ; size 24 - 1, 5, 15 min load avgs
 SYS_RAM_TOTAL     = 32
 SYS_RAM_FREE      = 40
-SYS_RAM_SHARED    = 48
 SYS_RAM_BUFFER    = 56
 SYS_SWAP_TOTAL    = 64
 SYS_SWAP_FREE     = 72
 SYS_PROCS         = 80  ; size 2 - number of processes
-__PADDING         = 82  ; size 6
-SYS_RAM_HIGH      = 88
-SYS_RAM_HIGH_FREE = 96
-SYS_MEM_UNIT      = 104
-__PADDING         = 108 ; size 4
-SYSINFO_SIZE      = 112
-
-ITOABUF_SIZE = 32 ; large enough for 64-bit decimal + nl
 
 SYS_WRITE   = 1
 SYS_UNAME   = 63
@@ -202,10 +189,10 @@ segment readable writable
 
         no_header_flag db 0
 
-        utsname_buf rb UTSNAME_SIZE
-        sysinfo_buf rb SYSINFO_SIZE
+        utsname_buf rb 390
+        sysinfo_buf rb 112
 
-        itoa_buf rb ITOABUF_SIZE
+        itoa_buf rb 32 ; large enough for 64-bit decimal + nl
 
 
 segment readable executable
