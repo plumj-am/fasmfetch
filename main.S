@@ -38,7 +38,8 @@ ESC = 0x1B
 NL  = 10 ; newline
 NUL = 0  ; ASCII NUL
 
-; clobbers: rax, rdi, rsi, rdx
+; print a string
+;   clobbers: rax, rdi, rsi, rdx (syscall: rcx, r11)
 macro print str, len {
         mov rax, SYS_WRITE
         mov rdi, 1
@@ -47,6 +48,8 @@ macro print str, len {
         syscall
 }
 
+; get 2 environment variable values by key and print as `key1 (key2)`
+;   in: key1, key2
 macro from_env_bracket_pair key1, key2 {
 .first:
         mov rdi, key1
@@ -67,6 +70,8 @@ macro from_env_bracket_pair key1, key2 {
         print newline, 1
 }
 
+; check if a flag is present in args
+;   in: short variant, long variant, jump location on success
 macro check_flag short, long, jump {
         mov rdi, [rsp + r12*8 + 8]
         mov rsi, short
@@ -268,7 +273,7 @@ _start:
 
 ; print null-terminated string
 ;   in:       rdi = pointer to string
-;   clobbers: rax, rsi, rdx
+;   clobbers: rax, rdi, rsi, rdx
 print_str:
         call strlen                    ; rax = len, rdi intact
         mov rsi, rdi                   ; pointer to rsi for write
@@ -317,7 +322,7 @@ strlen:
 ; compare two null-terminated strings
 ;   in:       rdi = string a, rsi = string b
 ;   out:      rax = 1 if eq, otherwise 0
-;   clobbers: al, dl, rcx
+;   clobbers: rdx, rcx
 streq:
         xor rcx, rcx
 .loop:
@@ -337,9 +342,9 @@ streq:
         ret
 
 ; convert unsigned 64-bit int to decimal string
-; in:       rax = number, rdi = output buffer (large needed)
-; out:      rsi = buffer pointer (null terminated)
-; clobbers: rax, rcx, rdx
+;   in:       rax = number, rdi = output buffer (large needed)
+;   out:      rsi = buffer pointer (null terminated)
+;   clobbers: rax, rcx, rdx, rdi
 itoa:
         mov rcx, 10                    ; divisor
         add rdi, 30                    ; build backwards from near end
@@ -363,7 +368,7 @@ itoa:
 ; search envp for a null-terminated key
 ;   in:       rdi = pointer to key string e.g. "USER"
 ;   out:      rax = pointer to value after the "=", or 0 if not found
-;   clobbers: rax, rbx, rcx, rdx, rsi, rdi
+;   clobbers: rax, rbx, rcx, rdx, rsi
 getenv:
         mov rbx, [init_envp]
 .loop:
@@ -396,9 +401,10 @@ getenv:
         xor rax, rax
         ret
 
-; in:       rax = total secs
-; out:      nothing (stdout)
-; clobbers: rax, rcx, rdx, rdi, rsi, r8, r9
+; print formatted duration as days hours minutes seconds
+;   in:       rax = total secs
+;   out:      nothing (stdout)
+;   clobbers: rax, rcx, rdx, rdi, rsi, r8, r9, r11
 print_duration:
         xor r9, r9                     ; tracks if we printed
         mov r8, rax                    ; r8 = total seconds
@@ -592,8 +598,7 @@ print_wm:
         from_env_bracket_pair wm_key, session_type_key
         ret
 
-; TODO: format correctly, only shows seconds for now
-; out: `uptime: 249882`
+; out: `uptime: 3d 2h 12m 18s`
 print_uptime:
         print uptime_label, uptime_label_len
 
