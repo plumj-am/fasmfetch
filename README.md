@@ -12,6 +12,7 @@ Like fastfetch but a little bit faster. Written in flat assembler (fasm).
 - [x] terminal name
 - [ ] displays
 - [x] uptime
+- [x] total process count
 - [ ] motherboard (host field in fastfetch)
 - [ ] CPU name
 - [ ] GPU name (handle many? seems a pain)

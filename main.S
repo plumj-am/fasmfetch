@@ -143,6 +143,11 @@ segment readable
                 db ESC, "[0m", ":   "
         uptime_label_len = $ - uptime_label
 
+        procs_label:
+                db ESC, "[34m procs"
+                db ESC, "[0m", ":    "
+        procs_label_len = $ - procs_label
+
         ram_label:
                 db ESC, "[34m ram"
                 db ESC, "[0m", ":      "
@@ -278,6 +283,7 @@ _start:
         call print_editor
         call print_wm
         call print_uptime
+        call print_procs
         call print_ram
         call print_swap
 
@@ -622,6 +628,20 @@ print_uptime:
 
         mov rax, qword [sysinfo_buf]   ; uptime offset 0 in struct
         call print_duration            ; rax = secs since boot
+
+        print newline, 1
+        ret
+
+; out: `procs: 0`
+print_procs:
+        print procs_label, procs_label_len
+
+        mov rax, qword [sysinfo_buf + SYS_PROCS]
+
+        mov rdi, itoa_buf
+        call itoa
+        mov rdi, rsi
+        call print_str
 
         print newline, 1
         ret
