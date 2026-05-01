@@ -17,7 +17,7 @@ Like fastfetch but a little bit faster. Written in flat assembler (fasm).
 - [ ] GPU name (handle many? seems a pain)
 - [x] RAM usage
 - [ ] disk usage
-- [ ] swap usage
+- [x] swap usage
 - [ ] local IP?
 - [ ] terminal font?
 - [ ] system font?

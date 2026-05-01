@@ -148,6 +148,11 @@ segment readable
                 db ESC, "[0m", ":      "
         ram_label_len = $ - ram_label
 
+        swap_label:
+                db ESC, "[34m swap"
+                db ESC, "[0m", ":     "
+        swap_label_len = $ - swap_label
+
         gb_suffix:
                 db ESC, "[33m GiB"
                 db ESC, "[0m"
@@ -274,6 +279,7 @@ _start:
         call print_wm
         call print_uptime
         call print_ram
+        call print_swap
 
         mov rax, SYS_EXIT
         xor rdi, rdi                   ; exit code 0 (xor smaller than `mov rdi, 0`)
@@ -628,6 +634,41 @@ print_ram:
         mov rax, rbx                   ; keep for later
         sub rax, qword [sysinfo_buf + SYS_RAM_FREE]
         sub rax, qword [sysinfo_buf + SYS_RAM_BUFFER]
+
+        mov rcx, 1073741824            ; 1 GiB in bytes
+        xor rdx, rdx
+        div rcx                        ; rax = used GiB
+
+        push rbx                       ; save total bytes
+
+        mov rdi, itoa_buf
+        call itoa
+        mov rdi, rsi
+        call print_str
+
+        print slash, 1
+
+        pop rax
+        mov rcx, 1073741824            ; reload bcs syscall killed rcx
+        xor rdx, rdx
+        div rcx                        ; rax = total GiB
+
+        mov rdi, itoa_buf
+        call itoa
+        mov rdi, rsi
+        call print_str
+
+        print gb_suffix, gb_suffix_len
+        print newline, 1
+        ret
+
+; out: `swap: 8/49 GiB` (no idea why I have so much swap rofl)
+print_swap:
+        print swap_label, swap_label_len
+
+        mov rbx, qword [sysinfo_buf + SYS_SWAP_TOTAL]
+        mov rax, rbx                   ; keep for later
+        sub rax, qword [sysinfo_buf + SYS_SWAP_FREE]
 
         mov rcx, 1073741824            ; 1 GiB in bytes
         xor rdx, rdx
