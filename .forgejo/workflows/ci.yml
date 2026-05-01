@@ -2,14 +2,14 @@ name: CI
 on: [push, pull_request]
 jobs:
     check:
-        runs-on: strong
+        runs-on: date
         steps:
             - uses: actions/checkout@v5
             - run: |
                   nix run github:juspay/omnix -- ci run --include-all-dependencies --github-output -- --builders ""
                   cat result | jq .result.ROOT.build.byName
     quick-bench:
-        runs-on: strong
+        runs-on: date
         steps:
             - uses: actions/checkout@v5
             - run: |
