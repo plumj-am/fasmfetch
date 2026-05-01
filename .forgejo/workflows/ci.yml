@@ -1,5 +1,9 @@
 name: CI
-on: [push, pull_request]
+on:
+    push:
+        paths: ["*.S"]
+    pull_request:
+        paths: ["*.S"]
 jobs:
     check:
         runs-on: date
