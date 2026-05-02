@@ -764,11 +764,8 @@ print_ram:
         sub rax, qword [sysinfo_buf + SYS_RAM_FREE]
         sub rax, qword [sysinfo_buf + SYS_RAM_BUFFER]
 
-        mov rcx, 1073741824            ; 1 GiB in bytes
-        xor rdx, rdx
-        div rcx                        ; rax = used GiB
+        shr rax, 30                    ; rax = used GiB (div 2^30 with shift right)
 
-        push rcx                       ; save divisor
         push rbx                       ; save total bytes
 
         mov rdi, itoa_buf
@@ -778,10 +775,8 @@ print_ram:
 
         print slash, 1
 
-        pop rax                        ; rax = total bytes
-        pop rcx                        ; rcx = divisor
-        xor rdx, rdx
-        div rcx                        ; rax = total GiB
+        pop rax
+        shr rax, 30                    ; rax = total GiB (div 2^30 with shift right)
 
         mov rdi, itoa_buf
         call itoa
