@@ -82,20 +82,20 @@ fasm main.S target/fasmfetch
 It's difficult to get rid of outliers, even with warmup. I'm not yet sure why.
 
 Benchmarked with [Hyperfine](https://github.com/sharkdp/hyperfine) on commit
-[30daa7e2a2](https://github.com/plumj-am/fasmfetch/commit/30daa7e2a2e96b995d50828bdff8d39380a5fa99).
+[b6cc005b16](https://github.com/plumj-am/fasmfetch/commit/b6cc005b16ea67b026d99dbd868235cc1cd49c2e).
 
 ```
 Benchmark 1: ./result/bin/fasmfetch
-  Time (mean ± σ):     103.8 µs ±  14.9 µs    [User: 65.5 µs, System: 2.8 µs]
-  Range (min … max):    90.4 µs … 190.6 µs    100 runs
+  Time (mean ± σ):     106.4 µs ±  10.7 µs    [User: 66.9 µs, System: 4.1 µs]
+  Range (min … max):    93.5 µs … 144.1 µs    100 runs
 
 Benchmark 2: fastfetch
-  Time (mean ± σ):     193.8 ms ±  40.1 ms    [User: 70.6 ms, System: 39.6 ms]
-  Range (min … max):   168.7 ms … 298.0 ms    100 runs
+  Time (mean ± σ):     195.9 ms ±  40.0 ms    [User: 70.5 ms, System: 38.2 ms]
+  Range (min … max):   172.4 ms … 290.2 ms    100 runs
 
 Summary
   ./result/bin/fasmfetch ran
- 1867.27 ± 469.57 times faster than fastfetch
+ 1842.08 ± 419.05 times faster than fastfetch
 ```
 
 I will keep this updated as I extend the program.
