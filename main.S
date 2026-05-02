@@ -98,7 +98,7 @@ macro check_no_flag flag_str, bit {
         mov rsi, flag_str
         call streq
         test rax, rax
-        jz @f
+        jz @f                          ; jump forward to nearest anon label
         mov rax, bit
         not rax
         and [show_mask], rax
@@ -205,17 +205,18 @@ segment readable
                 db "  ", ESC, "[35mff", ESC, "[0m | ", ESC, "[35mfasmfetch", ESC, "[0m", " [options]", NL
                 db NL
                 db "options:", NL
-                db "  -n  --no-header  Hide the 'fasmfetch' header from the output", NL
-                db "      --no-kernel  Hide the kernel line", NL
-                db "      --no-shell   Hide the shell line", NL
-                db "      --no-term    Hide the terminal line", NL
-                db "      --no-editor  Hide the editor line", NL
-                db "      --no-wm      Hide the wm line", NL
-                db "      --no-uptime  Hide the uptime line", NL
-                db "      --no-procs   Hide the procs line", NL
-                db "      --no-ram     Hide the ram line", NL
-                db "      --no-swap    Hide the swap line", NL
-                db "  -h  --help       Show this help screen", NL
+                db "  -n   --no-header  Hide the 'fasmfetch' header from the output", NL
+                db "  -nk  --no-kernel  Hide the kernel line", NL
+                db "  -ns  --no-shell   Hide the shell line", NL
+                db "  -nt  --no-term    Hide the terminal line", NL
+                db "  -ne  --no-editor  Hide the editor line", NL
+                db "  -nw  --no-wm      Hide the wm line", NL
+                db "  -nu  --no-uptime  Hide the uptime line", NL
+                db "  -np  --no-procs   Hide the procs line", NL
+                db "  -nr  --no-ram     Hide the ram line", NL
+                db "  -na  --no-swap    Hide the swap line", NL
+                db NL
+                db "  -h   --help       Show this help screen", NL
         help_msg_len = $ - help_msg
 
         user_key         db "USER", 0
