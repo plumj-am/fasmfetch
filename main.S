@@ -56,6 +56,7 @@ macro print str, len {
 ; get 2 environment variable values by key and print as `key1 (key2)`
 ;   in: key1, key2
 macro from_env_bracket_pair key1, key2 {
+local .first, .second, .done           ; prevent name collisions
 .first:
         mov rdi, key1
         call getenv
@@ -95,7 +96,7 @@ macro check_flag short, long, jump {
 ; check if a hide flag (short or long) is present, clear bit in show_mask
 ;   in: short flag string, long flag string, bit constant
 macro check_hide short, long, bit {
-local .clear, .skip                    ; declare to prevent name collisions (TODO: should do for others too)
+local .clear, .skip
         mov rdi, [rsp + r12*8 + 8]
         mov rsi, short
         call streq
