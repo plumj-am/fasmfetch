@@ -92,34 +92,27 @@ macro check_flag short, long, jump {
 }
 
 ; check if --no-* flag is present, clear corresponding bit in show_mask
-;   in: flag string, bit constant
-macro check_no_flag flag_str, bit {
+; check if a hide flag (short or long) is present, clear bit in show_mask
+;   in: short flag string, long flag string, bit constant
+macro check_hide short, long, bit {
+local .clear, .skip                    ; declare to prevent name collisions (TODO: should do for others too)
         mov rdi, [rsp + r12*8 + 8]
-        mov rsi, flag_str
+        mov rsi, short
         call streq
         test rax, rax
-        jz @f                          ; jump forward to nearest anon label
-        mov rax, bit
-        not rax
-        and [show_mask], rax
-; anonymous label
-; stops expanded macro conflicting with surrounding labels
-; so we can "return" from macro without disturbing parent procedures
-@@:
-}
+        jnz .clear
 
-; check if a short -n* flag is present, clear corresponding bit in show_mask
-;   in: flag string, bit constant
-macro check_no_short flag_str, bit {
         mov rdi, [rsp + r12*8 + 8]
-        mov rsi, flag_str
+        mov rsi, long
         call streq
         test rax, rax
-        jz @f
+        jz .skip
+
+.clear:
         mov rax, bit
         not rax
         and [show_mask], rax
-@@:
+.skip:
 }
 
 segment readable
@@ -302,25 +295,15 @@ _start:
         check_flag flag_h, flag_help, .help
         check_flag flag_n, flag_no_header, .set_no_header
 
-        check_no_flag flag_no_kernel, SHOW_KERNEL
-        check_no_flag flag_no_shell,  SHOW_SHELL
-        check_no_flag flag_no_term,   SHOW_TERM
-        check_no_flag flag_no_editor, SHOW_EDITOR
-        check_no_flag flag_no_wm,     SHOW_WM
-        check_no_flag flag_no_uptime, SHOW_UPTIME
-        check_no_flag flag_no_procs,  SHOW_PROCS
-        check_no_flag flag_no_ram,    SHOW_RAM
-        check_no_flag flag_no_swap,   SHOW_SWAP
-
-        check_no_short flag_nk, SHOW_KERNEL
-        check_no_short flag_ns, SHOW_SHELL
-        check_no_short flag_nt, SHOW_TERM
-        check_no_short flag_ne, SHOW_EDITOR
-        check_no_short flag_nw, SHOW_WM
-        check_no_short flag_nu, SHOW_UPTIME
-        check_no_short flag_np, SHOW_PROCS
-        check_no_short flag_nr, SHOW_RAM
-        check_no_short flag_na, SHOW_SWAP
+        check_hide flag_nk, flag_no_kernel, SHOW_KERNEL
+        check_hide flag_ns, flag_no_shell,  SHOW_SHELL
+        check_hide flag_nt, flag_no_term,   SHOW_TERM
+        check_hide flag_ne, flag_no_editor, SHOW_EDITOR
+        check_hide flag_nw, flag_no_wm,     SHOW_WM
+        check_hide flag_nu, flag_no_uptime, SHOW_UPTIME
+        check_hide flag_np, flag_no_procs,  SHOW_PROCS
+        check_hide flag_nr, flag_no_ram,    SHOW_RAM
+        check_hide flag_na, flag_no_swap,   SHOW_SWAP
 
         jmp .args_next
 
