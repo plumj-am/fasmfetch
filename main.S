@@ -108,6 +108,20 @@ macro check_no_flag flag_str, bit {
 @@:
 }
 
+; check if a short -n* flag is present, clear corresponding bit in show_mask
+;   in: flag string, bit constant
+macro check_no_short flag_str, bit {
+        mov rdi, [rsp + r12*8 + 8]
+        mov rsi, flag_str
+        call streq
+        test rax, rax
+        jz @f
+        mov rax, bit
+        not rax
+        and [show_mask], rax
+@@:
+}
+
 segment readable
         space       db " "
         newline     db NL
@@ -218,21 +232,29 @@ segment readable
         min_suffix  db "m"
         sec_suffix  db "s"
 
-        flag_h    db "-h", NUL
-        flag_help db "--help", NUL
-
-        flag_n         db "-n", NUL
+        flag_n         db "-n",          NUL
         flag_no_header db "--no-header", NUL
-
+        flag_nk        db "-nk",         NUL
         flag_no_kernel db "--no-kernel", NUL
-        flag_no_shell  db "--no-shell", NUL
-        flag_no_term   db "--no-term", NUL
+        flag_ns        db "-ns",         NUL
+        flag_no_shell  db "--no-shell",  NUL
+        flag_nt        db "-nt",         NUL
+        flag_no_term   db "--no-term",   NUL
+        flag_ne        db "-ne",         NUL
         flag_no_editor db "--no-editor", NUL
-        flag_no_wm     db "--no-wm", NUL
+        flag_nw        db "-nw",         NUL
+        flag_no_wm     db "--no-wm",     NUL
+        flag_nu        db "-nu",         NUL
         flag_no_uptime db "--no-uptime", NUL
-        flag_no_procs  db "--no-procs", NUL
-        flag_no_ram    db "--no-ram", NUL
-        flag_no_swap   db "--no-swap", NUL
+        flag_np        db "-np",         NUL
+        flag_no_procs  db "--no-procs",  NUL
+        flag_nr        db "-nr",         NUL
+        flag_no_ram    db "--no-ram",    NUL
+        flag_na        db "-na",         NUL
+        flag_no_swap   db "--no-swap",   NUL
+        flag_h         db "-h",          NUL
+        flag_help      db "--help",      NUL
+
 
 segment readable writable
         init_envp dq 0
@@ -288,6 +310,16 @@ _start:
         check_no_flag flag_no_procs,  SHOW_PROCS
         check_no_flag flag_no_ram,    SHOW_RAM
         check_no_flag flag_no_swap,   SHOW_SWAP
+
+        check_no_short flag_nk, SHOW_KERNEL
+        check_no_short flag_ns, SHOW_SHELL
+        check_no_short flag_nt, SHOW_TERM
+        check_no_short flag_ne, SHOW_EDITOR
+        check_no_short flag_nw, SHOW_WM
+        check_no_short flag_nu, SHOW_UPTIME
+        check_no_short flag_np, SHOW_PROCS
+        check_no_short flag_nr, SHOW_RAM
+        check_no_short flag_na, SHOW_SWAP
 
         jmp .args_next
 
