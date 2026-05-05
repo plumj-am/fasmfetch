@@ -10,7 +10,12 @@
   };
 
   outputs =
-    { nixpkgs, asm-lsp, ... }:
+    {
+      self,
+      nixpkgs,
+      asm-lsp,
+      ...
+    }:
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
@@ -40,6 +45,8 @@
           inherit fasmfetch;
           default = fasmfetch;
         };
+
+      checks.${system}.package-fasmfetch = self.packages.${system}.fasmfetch;
 
       devShells.${system} =
         let
