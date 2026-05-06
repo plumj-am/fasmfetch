@@ -26,9 +26,7 @@ Like fastfetch but a little bit faster. Written in flat assembler (fasm).
 
 Items suffixed with ? are maybes.
 
-fasmfetch will not be configurable, apart from maybe a couple of flags.
-
-## Usage
+## Install
 
 > [!WARNING]
 > Only x86_64-linux is supported.
@@ -51,11 +49,10 @@ Or add this flake as an input and add fasmfetch to your packages.
 }
 
 # packages.nix
-let
-  fasmfetch = inputs.fasmfetch.packages.${pkgs.stdenv.hostPlatform.system}.default
-in
 {
-  environment.systemPackages = [ fasmfetch ];
+  environment.systemPackages = [
+    inputs.fasmfetch.packages.x86_64-linux.default
+  ];
 }
 ```
 
@@ -76,9 +73,44 @@ fasm main.S target/fasmfetch
 ./target/fasmfetch
 ```
 
-## Performance
+## Usage
 
-It's difficult to get rid of outliers, even with warmup. I'm not yet sure why.
+fasmfetch has a flag to hide each of its outputs so you can customise it as you
+wish.
+
+```bash
+https://github.com/plumj-am/fasmfetch/issues
+usage:
+  ff | fasmfetch [options]
+
+options:
+  -n   --no-header   Hide the 'fasmfetch' header from the output
+  -nk  --no-kernel   Hide the kernel line
+  -ns  --no-shell    Hide the shell line
+  -nt  --no-term     Hide the terminal line
+  -ne  --no-editor   Hide the editor line
+  -nw  --no-wm       Hide the wm line
+  -nu  --no-uptime   Hide the uptime line
+  -np  --no-procs    Hide the procs line
+  -nr  --no-ram      Hide the ram line
+  -na  --no-swap     Hide the swap line
+  -nw  --no-swatches Hide the color swatches
+
+  -h   --help       Show this help screen
+```
+
+I plan to add support for setting these via an environment variable but, for
+now, it's best to add them as an alias to your shell config.
+
+In Nushell for example:
+
+```nu
+alias ff = ff -n -nt -nw
+```
+
+This will hide the header, terminal, and color swatches.
+
+## Performance
 
 Benchmarked with [Hyperfine](https://github.com/sharkdp/hyperfine) on commit
 [b6cc005b16](https://github.com/plumj-am/fasmfetch/commit/b6cc005b16ea67b026d99dbd868235cc1cd49c2e).
@@ -97,7 +129,8 @@ Summary
  1842.08 ± 419.05 times faster than fastfetch
 ```
 
-I will keep this updated as I extend the program.
+All benchmarks are ran on the same host. The workflow can be seen in
+`.forgejo/workflows/ci.yml`.
 
 ## License
 
