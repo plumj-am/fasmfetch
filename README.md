@@ -22,8 +22,7 @@ Like fastfetch but a little bit faster. Written in flat assembler (fasm).
 - [ ] local IP?
 - [ ] terminal font?
 - [ ] system font?
-
-I do not care about other features from fastfetch.
+- [x] color swatches
 
 Items suffixed with ? are maybes.
 
