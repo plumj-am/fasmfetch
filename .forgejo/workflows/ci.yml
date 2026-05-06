@@ -5,13 +5,6 @@ on:
     pull_request:
         paths: ["*.S"]
 jobs:
-    check:
-        runs-on: date
-        steps:
-            - uses: actions/checkout@v5
-            - run: |
-                  nix run github:juspay/omnix -- ci run --include-all-dependencies --github-output -- --builders ""
-                  cat result | jq .result.ROOT.build.byName
     quick-bench:
         runs-on: date
         steps:
